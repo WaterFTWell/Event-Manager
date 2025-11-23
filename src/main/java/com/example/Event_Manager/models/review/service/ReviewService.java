@@ -1,5 +1,6 @@
 package com.example.Event_Manager.models.review.service;
 
+import com.example.Event_Manager.auth.repository.UserRepository;
 import com.example.Event_Manager.models.event.Event;
 import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
 import com.example.Event_Manager.models.event.repository.EventRepository;
@@ -15,7 +16,6 @@ import com.example.Event_Manager.models.review.repository.ReviewRepository;
 import com.example.Event_Manager.models.review.validation.ReviewValidation;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.repository.UserRepository;
 import com.example.Event_Manager.models.user.validation.UserValidation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
