@@ -3,7 +3,7 @@ package com.example.Event_Manager.models.review.controller;
 import com.example.Event_Manager.models.review.exceptions.DuplicateReviewException;
 import com.example.Event_Manager.models.review.exceptions.ReviewNotFoundException;
 import com.example.Event_Manager.models.review.exceptions.UnauthorizedReviewAccessException;
-import com.example.Event_Manager.models.util.ErrorResponse;
+import com.example.Event_Manager.models._util.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

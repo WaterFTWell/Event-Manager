@@ -1,4 +1,4 @@
-package com.example.Event_Manager.models.util;
+package com.example.Event_Manager.models._util;
 
 import java.time.LocalDateTime;
 

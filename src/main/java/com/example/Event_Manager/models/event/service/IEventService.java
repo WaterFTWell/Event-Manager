@@ -13,7 +13,6 @@ public interface IEventService {
     EventDTO updateEvent(Long eventId, UpdateEventDTO eventDTO);
     void deleteEvent(Long eventId);
     EventDTO getEventById(Long eventId);
-
     List<EventDTO> getAllEvents();
     List<EventDTO> getEventsByCategory(Long categoryId);
     List<EventDTO> getEventsByVenue(Long venueId);

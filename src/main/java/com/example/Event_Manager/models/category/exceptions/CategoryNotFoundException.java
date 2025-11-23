@@ -1,6 +1,5 @@
-package com.example.Event_Manager.models.event.exceptions;
+package com.example.Event_Manager.models.category.exceptions;
 
-//TODO:: przeniesc w odpowiednie miejsce
 public class CategoryNotFoundException extends RuntimeException {
     public CategoryNotFoundException(String message) {
         super(message);

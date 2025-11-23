@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
+@CrossOrigin
 @Validated // <-- sprawdza kiedy dane z dto sa poprawne triggeruje hibernate validator
 public class ReviewController implements ReviewApi {
 

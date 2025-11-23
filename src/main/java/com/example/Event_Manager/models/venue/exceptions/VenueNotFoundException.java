@@ -1,4 +1,4 @@
-package com.example.Event_Manager.models.event.exceptions;
+package com.example.Event_Manager.models.venue.exceptions;
 
 //TODO:: przeniesc w odpowiednie miejsce
 public class VenueNotFoundException extends RuntimeException {

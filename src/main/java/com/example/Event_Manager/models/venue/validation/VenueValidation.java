@@ -1,14 +1,12 @@
-package com.example.Event_Manager.models.user.validation;
+package com.example.Event_Manager.models.venue.validation;
 
 import com.example.Event_Manager.models._util.BaseValidation;
 import com.example.Event_Manager.models._util.RequestEmptyException;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.models.venue.exceptions.VenueNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserValidation implements BaseValidation {
-
-
+public class VenueValidation implements BaseValidation {
     @Override
     public void checkIfRequestNotNull(Object request) {
         if(request == null) {
@@ -19,14 +17,14 @@ public class UserValidation implements BaseValidation {
     @Override
     public void checkIfIdValid(Long id) {
         if(id <= 0 && id.equals(null)) {
-            throw new UserNotFoundException("User with this id is not in database.");
+            throw new VenueNotFoundException("Venue with this id is not in database.");
         }
     }
 
     @Override
     public void checkIfObjectExist(Object object) {
         if(object == null) {
-            throw new UserNotFoundException("User not found in database.");
+            throw new VenueNotFoundException("Venue not found in database.");
         }
     }
 }

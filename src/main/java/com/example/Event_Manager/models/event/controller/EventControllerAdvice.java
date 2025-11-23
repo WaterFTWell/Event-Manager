@@ -1,7 +1,10 @@
 package com.example.Event_Manager.models.event.controller;
 
+
+import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.models.event.exceptions.*;
-import com.example.Event_Manager.models.util.ErrorResponse;
+import com.example.Event_Manager.models._util.ErrorResponse;
+import com.example.Event_Manager.models.venue.exceptions.VenueNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

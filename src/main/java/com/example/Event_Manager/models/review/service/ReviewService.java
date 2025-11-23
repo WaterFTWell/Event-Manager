@@ -56,8 +56,9 @@ public class ReviewService implements IReviewService {
     @Transactional
     public ReviewDTO updateReview(Long reviewId, UpdateReviewDTO reviewRequest, Long userId) {
         reviewValidation.checkIfRequestNotNull(reviewRequest);
+        reviewValidation.checkIfIdValid(reviewId);
         var review = reviewRepository.getReviewById(reviewId);
-        reviewValidation.checkIfReviewExists(review);
+        reviewValidation.checkIfObjectExist(review);
 
         reviewMapper.updateEntity(review, reviewRequest);
         Review updated = reviewRepository.save(review);
@@ -68,18 +69,19 @@ public class ReviewService implements IReviewService {
     @Transactional
     public void deleteReview(Long reviewId, Long userId) {
         reviewValidation.checkIfRequestNotNull(reviewId);
-        userValidation.checkIfUserExist(userId);
+        reviewValidation.checkIfIdValid(reviewId);
+        userValidation.checkIfIdValid(userId);
         // idk zawsze mozna -> findById, sprawdzic czy "jest" a potem usunac
         reviewRepository.deleteById(Math.toIntExact(reviewId));
     }
 
     @Override
     public List<ReviewDTO> getReviewsForEvent(Long eventId) {
-        eventValidation.checkIfEventExist(eventId);
+        eventValidation.checkIfIdValid(eventId);
         var reviews = reviewRepository.findByEventId(eventId);
         // aby nie przechodzic po calej kolekcji
-        reviewValidation.checkIfReviewExists(reviews.getFirst());
-        reviewValidation.checkIfReviewExists(reviews.getLast());
+        reviewValidation.checkIfObjectExist(reviews.getFirst());
+        reviewValidation.checkIfObjectExist(reviews.getLast());
 
         return reviews.stream()
                 .map(reviewMapper::toDTO)
@@ -88,11 +90,11 @@ public class ReviewService implements IReviewService {
 
     @Override
     public ReviewSummaryDTO getEventReviewSummary(Long eventId) {
-        eventValidation.checkIfEventExist(eventId);
+        eventValidation.checkIfIdValid(eventId);
 
         var reviews = reviewRepository.findByEventId(eventId);
-        reviewValidation.checkIfReviewExists(reviews.getFirst());
-        reviewValidation.checkIfReviewExists(reviews.getLast());
+        reviewValidation.checkIfObjectExist(reviews.getFirst());
+        reviewValidation.checkIfObjectExist(reviews.getLast());
 
         double averageRating = reviews.stream()
                 .mapToInt(Review::getRating)

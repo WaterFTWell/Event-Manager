@@ -1,14 +1,12 @@
-package com.example.Event_Manager.models.user.validation;
+package com.example.Event_Manager.models.category.validation;
 
 import com.example.Event_Manager.models._util.BaseValidation;
 import com.example.Event_Manager.models._util.RequestEmptyException;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserValidation implements BaseValidation {
-
-
+public class CategoryValidation implements BaseValidation {
     @Override
     public void checkIfRequestNotNull(Object request) {
         if(request == null) {
@@ -18,15 +16,15 @@ public class UserValidation implements BaseValidation {
 
     @Override
     public void checkIfIdValid(Long id) {
-        if(id <= 0 && id.equals(null)) {
-            throw new UserNotFoundException("User with this id is not in database.");
+        if(id == null && id <= 0) {
+            throw new CategoryNotFoundException("ID cannot be null.");
         }
     }
 
     @Override
     public void checkIfObjectExist(Object object) {
         if(object == null) {
-            throw new UserNotFoundException("User not found in database.");
+            throw new CategoryNotFoundException("Category not found in database.");
         }
     }
 }
