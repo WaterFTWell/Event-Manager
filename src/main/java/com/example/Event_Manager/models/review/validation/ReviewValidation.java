@@ -4,6 +4,8 @@ import com.example.Event_Manager.models.review.Review;
 import com.example.Event_Manager.models.review.exceptions.ReviewNotFoundException;
 import com.example.Event_Manager.models._util.BaseValidation;
 import com.example.Event_Manager.models._util.RequestEmptyException;
+import com.example.Event_Manager.models.review.exceptions.UnauthorizedReviewAccessException;
+import com.example.Event_Manager.models.user.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +20,7 @@ public class ReviewValidation implements BaseValidation {
 
     @Override
     public void checkIfIdValid(Long id) {
-        if(id <= 0 && id.equals(null)) {
+        if(id <= 0 || id == null) {
             throw new ReviewNotFoundException("Review with this id is not in database.");
         }
     }

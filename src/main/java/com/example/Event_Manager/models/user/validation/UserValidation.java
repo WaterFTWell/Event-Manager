@@ -18,7 +18,7 @@ public class UserValidation implements BaseValidation {
 
     @Override
     public void checkIfIdValid(Long id) {
-        if(id <= 0 && id.equals(null)) {
+        if(id <= 0 || id.equals(null)) {
             throw new UserNotFoundException("User with this id is not in database.");
         }
     }

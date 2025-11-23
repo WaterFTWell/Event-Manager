@@ -73,8 +73,11 @@ public class ReviewService implements IReviewService {
         reviewValidation.checkIfRequestNotNull(reviewId);
         reviewValidation.checkIfIdValid(reviewId);
         userValidation.checkIfIdValid(userId);
-        // idk zawsze mozna -> findById, sprawdzic czy "jest" a potem usunac
-        reviewRepository.deleteById(Math.toIntExact(reviewId));
+
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        reviewRepository.deleteById(reviewId);
     }
 
     @Override

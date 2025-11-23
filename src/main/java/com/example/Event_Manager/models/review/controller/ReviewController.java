@@ -6,7 +6,6 @@ import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewSummaryDTO;
 import com.example.Event_Manager.models.review.service.IReviewService;
 import com.example.Event_Manager.models.user.User;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +19,14 @@ import java.util.List;
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 @CrossOrigin
-@Validated // <-- sprawdza kiedy dane z dto sa poprawne triggeruje hibernate validator
+@Validated
 public class ReviewController implements ReviewApi {
 
     private final IReviewService reviewService;
 
     @PostMapping
     public ResponseEntity<ReviewDTO> createReview(
-            @Valid @RequestBody CreateReviewDTO createReviewDTO,
+            @RequestBody CreateReviewDTO createReviewDTO,
             @AuthenticationPrincipal User user
     ) {
         ReviewDTO response = reviewService.createReview(createReviewDTO, user.getId());
@@ -37,7 +36,7 @@ public class ReviewController implements ReviewApi {
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewDTO> updateReview(
             @PathVariable Long reviewId,
-            @Valid @RequestBody UpdateReviewDTO updateReviewDTO,
+            @RequestBody UpdateReviewDTO updateReviewDTO,
             @AuthenticationPrincipal User user
     ) {
         ReviewDTO response = reviewService.updateReview(reviewId, updateReviewDTO, user.getId());
@@ -58,7 +57,7 @@ public class ReviewController implements ReviewApi {
     public ResponseEntity<List<ReviewDTO>> getReviewsForEvent(
             @PathVariable Long eventId
     ) {
-       List<ReviewDTO> response = reviewService.getReviewsForEvent(eventId);
+        List<ReviewDTO> response = reviewService.getReviewsForEvent(eventId);
         return ResponseEntity.ok(response);
     }
 

@@ -101,7 +101,7 @@ public class EventIntegrationTest {
                         .content(json))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        Long eventId = objectMapper.readTree(response).get("id").asLong();
+        long eventId = objectMapper.readTree(response).get("id").asLong();
         mockMvc.perform(MockMvcRequestBuilders.get("/api/events/" + eventId))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Event"));

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ReviewRepository extends JpaRepository<Review,Integer> {
+public interface ReviewRepository extends JpaRepository<Review,Long> {
     List<Review> findByEventId(Long eventId);
     List<Review> findByUserId(Long userId);
     Optional<Review> getReviewById(Long reviewId);
