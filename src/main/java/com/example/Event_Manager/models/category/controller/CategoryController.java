@@ -4,11 +4,9 @@ import com.example.Event_Manager.models.category.dto.request.CreateCategoryDTO;
 import com.example.Event_Manager.models.category.dto.request.UpdateCategoryDTO;
 import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
 import com.example.Event_Manager.models.category.service.ICategoryService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +15,6 @@ import java.util.List;
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
 @CrossOrigin
-@Validated
 public class CategoryController implements CategoryApi {
 
     private final ICategoryService categoryService;

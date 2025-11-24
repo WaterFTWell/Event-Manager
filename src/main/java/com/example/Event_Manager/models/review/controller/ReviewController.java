@@ -19,7 +19,6 @@ import java.util.List;
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 @CrossOrigin
-@Validated
 public class ReviewController implements ReviewApi {
 
     private final IReviewService reviewService;

@@ -7,10 +7,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
+@Validated
 @Tag(name = "Category Management", description = "APIs for managing categories")
 public interface CategoryApi {
 
@@ -21,7 +24,7 @@ public interface CategoryApi {
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
             @ApiResponse(responseCode = "409", description = "Category with this name already exists")
     })
-    ResponseEntity<CategoryDTO> createCategory(CreateCategoryDTO createCategoryDTO);
+    ResponseEntity<CategoryDTO> createCategory(@Valid CreateCategoryDTO createCategoryDTO);
 
     @Operation(summary = "Update an existing category",
             description = "Updates a category's details by its ID.")
@@ -30,7 +33,7 @@ public interface CategoryApi {
             @ApiResponse(responseCode = "404", description = "Category not found"),
             @ApiResponse(responseCode = "409", description = "Another category with this name already exists")
     })
-    ResponseEntity<CategoryDTO> updateCategory(Long id, UpdateCategoryDTO updateCategoryDTO);
+    ResponseEntity<CategoryDTO> updateCategory(Long id, @Valid UpdateCategoryDTO updateCategoryDTO);
 
     @Operation(summary = "Delete a category",
             description = "Deletes a category by its ID.")

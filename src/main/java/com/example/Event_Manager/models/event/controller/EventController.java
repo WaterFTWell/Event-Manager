@@ -19,7 +19,6 @@ import java.util.List;
 @RequestMapping("/api/events")
 @RequiredArgsConstructor
 @CrossOrigin
-@Validated
 public class EventController implements EventApi {
     private final EventService eventService;
 

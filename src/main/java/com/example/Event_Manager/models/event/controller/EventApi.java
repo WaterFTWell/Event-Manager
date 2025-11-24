@@ -8,11 +8,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Validated
 @Tag(name = "Event Management", description = "APIs for managing events")
 public interface EventApi {
     @Operation(summary = "Create a new event",
@@ -21,7 +24,7 @@ public interface EventApi {
             @ApiResponse(responseCode = "201", description = "Event created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
-    ResponseEntity<EventDTO> createEvent(CreateEventDTO createEventDTO);
+    ResponseEntity<EventDTO> createEvent(@Valid CreateEventDTO createEventDTO);
 
     @Operation(summary = "Update an existing event",
             description = "Allows updating an existing event.")
@@ -29,7 +32,7 @@ public interface EventApi {
             @ApiResponse(responseCode = "200", description = "Event updated successfully"),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-    ResponseEntity<EventDTO> updateEvent(Long id, UpdateEventDTO updateEventDTO);
+    ResponseEntity<EventDTO> updateEvent(Long id, @Valid UpdateEventDTO updateEventDTO);
 
     @Operation(summary = "Delete an event",
             description = "Deletes an event by its ID.")

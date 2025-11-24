@@ -9,10 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
+@Validated
 @Tag(name = "Review Management", description = "APIs for managing event reviews")
 public interface ReviewApi {
 
@@ -24,7 +27,7 @@ public interface ReviewApi {
             @ApiResponse(responseCode = "409", description = "Duplicate review detected")
     })
     ResponseEntity<ReviewDTO> createReview(
-            CreateReviewDTO createReviewDTO,
+            @Valid CreateReviewDTO createReviewDTO,
             User user
     );
 
@@ -38,7 +41,7 @@ public interface ReviewApi {
     })
      ResponseEntity<ReviewDTO> updateReview(
             Long reviewId,
-            UpdateReviewDTO updateReviewDTO,
+            @Valid UpdateReviewDTO updateReviewDTO,
             User user
     );
 
