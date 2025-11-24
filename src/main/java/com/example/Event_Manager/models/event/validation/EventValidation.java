@@ -19,7 +19,7 @@ public class EventValidation implements BaseValidation {
 
     @Override
     public void checkIfIdValid(Long id) {
-        if(id <= 0 || id.equals(null)) {
+        if(id == null || id <= 0) {
             throw new EventNotFoundException("Event with this id is not in database.");
         }
     }

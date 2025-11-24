@@ -6,6 +6,7 @@ import com.example.Event_Manager.models.event.dto.request.UpdateEventDTO;
 import com.example.Event_Manager.models.event.dto.response.EventDTO;
 import com.example.Event_Manager.models.event.dto.response.EventSummaryDTO;
 import com.example.Event_Manager.models.event.service.EventService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -20,13 +21,14 @@ import java.util.List;
 @RequestMapping("/api/events")
 @RequiredArgsConstructor
 @CrossOrigin
+@Validated
 public class EventController implements EventApi {
     private final EventService eventService;
 
     @PostMapping
     @IsOrganizer
     public ResponseEntity<EventDTO> createEvent(
-            @RequestBody CreateEventDTO createEventDTO
+            @Valid @RequestBody CreateEventDTO createEventDTO
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(createEventDTO));
     }
@@ -35,7 +37,7 @@ public class EventController implements EventApi {
     @IsOrganizer
     public ResponseEntity<EventDTO> updateEvent(
             @PathVariable Long id,
-            @RequestBody UpdateEventDTO updateEventDTO
+            @Valid @RequestBody UpdateEventDTO updateEventDTO
     ) {
         return ResponseEntity.ok(eventService.updateEvent(id, updateEventDTO));
     }

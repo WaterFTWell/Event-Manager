@@ -20,7 +20,7 @@ public record UpdateEventDTO(
         LocalDateTime startDate,
 
         @NotNull(message = "Event end date is required")
-        @FutureOrPresent
+        @Future
         LocalDateTime endDate,
 
         @NotNull(message = "Venue ID is required")

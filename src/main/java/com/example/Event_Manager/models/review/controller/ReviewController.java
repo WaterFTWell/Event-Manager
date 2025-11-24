@@ -7,6 +7,7 @@ import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewSummaryDTO;
 import com.example.Event_Manager.models.review.service.IReviewService;
 import com.example.Event_Manager.models.user.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
 @CrossOrigin
+@Validated
 public class ReviewController implements ReviewApi {
 
     private final IReviewService reviewService;
@@ -27,7 +29,7 @@ public class ReviewController implements ReviewApi {
     @PostMapping
     @IsAttendee
     public ResponseEntity<ReviewDTO> createReview(
-            @RequestBody CreateReviewDTO createReviewDTO,
+            @Valid @RequestBody CreateReviewDTO createReviewDTO,
             @AuthenticationPrincipal User user
     ) {
         ReviewDTO response = reviewService.createReview(createReviewDTO, user.getId());
@@ -38,7 +40,7 @@ public class ReviewController implements ReviewApi {
     @IsAttendee
     public ResponseEntity<ReviewDTO> updateReview(
             @PathVariable Long reviewId,
-            @RequestBody UpdateReviewDTO updateReviewDTO,
+            @Valid @RequestBody UpdateReviewDTO updateReviewDTO,
             @AuthenticationPrincipal User user
     ) {
         ReviewDTO response = reviewService.updateReview(reviewId, updateReviewDTO, user.getId());
