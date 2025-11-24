@@ -1,6 +1,6 @@
 package com.example.Event_Manager.auth.config;
 
-import com.example.Event_Manager.auth.security.JwtService;
+import com.example.Event_Manager.auth.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +27,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
     /*
@@ -62,7 +62,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtService, userDetailsService);
+        return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
     }
 
     @Bean

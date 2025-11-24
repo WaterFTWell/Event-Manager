@@ -1,4 +1,4 @@
-package com.example.Event_Manager.auth.dto;
+package com.example.Event_Manager.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

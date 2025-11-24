@@ -1,7 +1,7 @@
 package com.example.Event_Manager.integration;
 
 import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.auth.security.JwtService;
+import com.example.Event_Manager.auth.util.JwtUtil;
 import com.example.Event_Manager.models.category.Category;
 import com.example.Event_Manager.models.category.repository.CategoryRepository;
 import com.example.Event_Manager.models.event.Event;
@@ -59,7 +59,7 @@ public class ReviewIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtUtil jwtUtil;
 
     @Autowired
     private ReviewRepository reviewRepository;
@@ -96,7 +96,7 @@ public class ReviewIntegrationTest {
         testEvent = createAndSaveEvent("Test Event", testUser, testCategory, testVenue);
 
         // jwt dla usera testowego
-        testUserToken = jwtService.generateToken(testUser);
+        testUserToken = jwtUtil.generateToken(testUser);
     }
 
     private User createAndSaveUser(String email, String phone) {
@@ -108,7 +108,6 @@ public class ReviewIntegrationTest {
                 .password("password")
                 .role(Role.ATTENDEE)
                 .status(Status.ACTIVE)
-                .isDeleted(false)
                 .build();
         return userRepository.save(user);
     }

@@ -1,8 +1,8 @@
 package com.example.Event_Manager.auth.controller;
 
-import com.example.Event_Manager.auth.dto.AuthRequest;
-import com.example.Event_Manager.auth.dto.AuthResponse;
-import com.example.Event_Manager.auth.dto.RegisterRequest;
+import com.example.Event_Manager.auth.dto.request.AuthRequest;
+import com.example.Event_Manager.auth.dto.response.AuthResponse;
+import com.example.Event_Manager.auth.dto.request.RegisterRequest;
 import com.example.Event_Manager.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

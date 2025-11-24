@@ -1,13 +1,13 @@
 package com.example.Event_Manager.auth.service;
 
-import com.example.Event_Manager.auth.dto.AuthRequest;
-import com.example.Event_Manager.auth.dto.AuthResponse;
-import com.example.Event_Manager.auth.dto.RegisterRequest;
+import com.example.Event_Manager.auth.dto.request.AuthRequest;
+import com.example.Event_Manager.auth.dto.response.AuthResponse;
+import com.example.Event_Manager.auth.dto.request.RegisterRequest;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.enums.Role;
 import com.example.Event_Manager.models.user.enums.Status;
 import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.auth.security.JwtService;
+import com.example.Event_Manager.auth.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +22,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
 
@@ -52,7 +52,7 @@ public class AuthService {
         userRepository.save(user);
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
 
-        var jwtToken = jwtService.generateToken(userDetails);
+        var jwtToken = jwtUtil.generateToken(userDetails);
         return AuthResponse.builder()
                 .token(jwtToken)
                 .email(user.getEmail())
@@ -74,7 +74,7 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
 
-        var jwtToken = jwtService.generateToken(userDetails);
+        var jwtToken = jwtUtil.generateToken(userDetails);
         return AuthResponse.builder()
                 .token(jwtToken)
                 .email(user.getEmail())

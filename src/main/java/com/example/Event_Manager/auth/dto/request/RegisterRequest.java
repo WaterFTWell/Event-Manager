@@ -1,4 +1,4 @@
-package com.example.Event_Manager.auth.dto;
+package com.example.Event_Manager.auth.dto.request;
 
 import com.example.Event_Manager.models.user.enums.Role;
 import jakarta.validation.constraints.Email;

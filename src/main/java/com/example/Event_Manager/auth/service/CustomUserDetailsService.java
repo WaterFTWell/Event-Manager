@@ -1,4 +1,4 @@
-package com.example.Event_Manager.auth.security;
+package com.example.Event_Manager.auth.service;
 
 import com.example.Event_Manager.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

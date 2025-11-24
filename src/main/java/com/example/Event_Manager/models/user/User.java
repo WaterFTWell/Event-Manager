@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,8 +28,7 @@ import java.util.Set;
 @Entity
 @Data
 @Table(name = "users")
-@SQLDelete(sql = "UPDATE users SET is_deleted = true WHERE id=?")
-@Where(clause = "is_deleted=false")
+@SQLDelete(sql = "UPDATE users SET status = 'INACTIVE' WHERE id=?")
 @AllArgsConstructor
 @NoArgsConstructor
 public class User implements UserDetails {
@@ -61,10 +59,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status;
-
-    @Column(name="is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -114,7 +108,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !isDeleted;
+        return status != Status.INACTIVE;
     }
 }
-
