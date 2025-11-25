@@ -1,7 +1,32 @@
 package com.example.Event_Manager.models.country.service;
 
+import com.example.Event_Manager.models.country.Country;
+import com.example.Event_Manager.models.country.dto.response.CountryDTO;
+import com.example.Event_Manager.models.country.exceptions.CountryNotFoundException;
+import com.example.Event_Manager.models.country.mapper.CountryMapper;
+import com.example.Event_Manager.models.country.repository.CountryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
+@RequiredArgsConstructor
 public class CountryService {
+
+    private final CountryRepository countryRepository;
+    private final CountryMapper countryMapper;
+
+    public List<CountryDTO> getAll() {
+        return countryRepository.findAll().stream()
+                .map(countryMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public CountryDTO getByCode(String code) {
+        Country country = countryRepository.findById(code)
+                .orElseThrow(() -> new CountryNotFoundException(code));
+        return countryMapper.toDTO(country);
+    }
 }
