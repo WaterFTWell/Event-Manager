@@ -78,14 +78,12 @@ public class UpdateEventTest {
     private Country country;
     private City city;
     private LocalDateTime futureDate;
-    private LocalDateTime newFutureDate;
 
     @BeforeEach
     void setUp() {
         country = Country.builder()
-                .id(1L)
-                .name("Polska")
                 .code("PL")
+                .name("Polska")
                 .build();
 
         city = City.builder()
@@ -133,7 +131,7 @@ public class UpdateEventTest {
                 .build();
 
         futureDate = LocalDateTime.now().plusDays(7);
-        newFutureDate = LocalDateTime.now().plusDays(14);
+        LocalDateTime newFutureDate = LocalDateTime.now().plusDays(14);
 
         event = Event.builder()
                 .id(1L)

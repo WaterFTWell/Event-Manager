@@ -18,14 +18,11 @@ import java.util.Set;
 public class Country {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "code")
+    private String code;
 
     @Column(nullable = false, name = "name")
     private String name;
-
-    @Column(unique = true, nullable = false, name = "code")
-    private String code;
 
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<City> cities;

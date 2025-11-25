@@ -60,9 +60,8 @@ public class GetEventTest {
     @BeforeEach
     void setUp() {
         country = Country.builder()
-                .id(1L)
-                .name("Polska")
                 .code("PL")
+                .name("Polska")
                 .build();
 
         city = City.builder()
