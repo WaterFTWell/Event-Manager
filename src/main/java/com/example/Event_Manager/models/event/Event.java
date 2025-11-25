@@ -8,10 +8,7 @@ import com.example.Event_Manager.models.review.Review;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.venue.Venue;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -32,6 +29,8 @@ public class Event {
 
     @ManyToOne
     @JoinColumn(name = "organizer_id", referencedColumnName = "id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User organizer;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,9 +66,13 @@ public class Event {
     private Date updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "event", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Review> reviews;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "event", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Interested> interestedUsers;
 
 }
