@@ -1,6 +1,7 @@
 package com.example.Event_Manager.models.country.service;
 
 import com.example.Event_Manager.models.country.Country;
+import com.example.Event_Manager.models.country.dto.request.CreateCountryDTO;
 import com.example.Event_Manager.models.country.dto.response.CountryDTO;
 import com.example.Event_Manager.models.country.exceptions.CountryNotFoundException;
 import com.example.Event_Manager.models.country.mapper.CountryMapper;
@@ -30,6 +31,15 @@ public class CountryService {
         return countryMapper.toDTO(country);
     }
 
+    public CountryDTO create(CreateCountryDTO createCountryDTO) {
+        String code = createCountryDTO.code();
+        if (countryRepository.existsById(code)) {
+            throw new CountryAlreadyExistsException(code);
+        }
+        Country country = countryMapper.toEntity(createCountryDTO);
+        Country savedCountry = countryRepository.save(country);
+        return countryMapper.toDTO(savedCountry);
+    }
     public void delete(String code) {
         Country country = countryRepository.findById(code)
                 .orElseThrow(() -> new CountryNotFoundException(code));

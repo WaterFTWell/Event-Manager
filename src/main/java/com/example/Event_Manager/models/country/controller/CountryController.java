@@ -1,10 +1,13 @@
 package com.example.Event_Manager.models.country.controller;
 
+import com.example.Event_Manager.models._util.annotations.IsAdmin;
 import com.example.Event_Manager.models.country.dto.request.CreateCountryDTO;
 import com.example.Event_Manager.models.country.dto.request.UpdateCountryDTO;
 import com.example.Event_Manager.models.country.dto.response.CountryDTO;
 import com.example.Event_Manager.models.country.service.CountryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +23,11 @@ public class CountryController implements CountryApi {
     private final CountryService countryService;
 
     @Override
-    public ResponseEntity<CountryDTO> create(CreateCountryDTO createCountryDTO) {
-        return null;
+    @PostMapping
+    @IsAdmin
+    public ResponseEntity<CountryDTO> create(@Valid @RequestBody CreateCountryDTO createCountryDTO) {
+        CountryDTO createdCountry = countryService.create(createCountryDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCountry);
     }
 
     @Override
