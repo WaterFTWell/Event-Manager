@@ -3,7 +3,6 @@ package com.example.Event_Manager.models.user.service;
 import com.example.Event_Manager.auth.repository.UserRepository;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.dto.request.ChangePasswordRequest;
-import com.example.Event_Manager.models.user.dto.request.CreateUserDTO;
 import com.example.Event_Manager.models.user.dto.request.UpdateUserDTO;
 import com.example.Event_Manager.models.user.dto.response.UserDTO;
 import com.example.Event_Manager.models.user.enums.Status;
@@ -51,27 +50,6 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO createUser(CreateUserDTO createDTO) {
-        userValidation.checkIfRequestNotNull(createDTO);
-
-        if (userRepository.existsByEmail(createDTO.email())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-        if (userRepository.existsByPhoneNumber(createDTO.phoneNumber())) {
-            throw new IllegalArgumentException("Phone number already exists");
-        }
-
-        User user = userMapper.toEntity(createDTO);
-        // Hasło musi być zakodowane
-        user.setPassword(passwordEncoder.encode(createDTO.password()));
-        // Domyślny status dla tworzonego usera
-        user.setStatus(Status.ACTIVE);
-
-        User savedUser = userRepository.save(user);
-        return userMapper.toDTO(savedUser);
-    }
-
-    @Transactional
     public void deleteUser(Long userId) {
         userValidation.checkIfIdValid(userId);
         if (!userRepository.existsById(userId)) {
@@ -106,3 +84,4 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 }
+//nie bedzie tworzenia użytkowników przez adminow przez API

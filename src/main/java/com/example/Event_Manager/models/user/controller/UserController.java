@@ -3,7 +3,6 @@ package com.example.Event_Manager.models.user.controller;
 import com.example.Event_Manager.models._util.annotations.IsAdmin;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.dto.request.ChangePasswordRequest;
-import com.example.Event_Manager.models.user.dto.request.CreateUserDTO;
 import com.example.Event_Manager.models.user.dto.request.UpdateUserDTO;
 import com.example.Event_Manager.models.user.dto.response.UserDTO;
 import com.example.Event_Manager.models.user.service.UserService;
@@ -47,12 +46,6 @@ public class UserController {
     ) {
         userService.changePassword(user.getId(), request);
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping
-    @IsAdmin
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserDTO createDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(createDTO));
     }
 
     @DeleteMapping("/{id}")

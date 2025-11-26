@@ -4,7 +4,6 @@ import com.example.Event_Manager.auth.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.dto.request.ChangePasswordRequest;
-import com.example.Event_Manager.models.user.dto.request.CreateUserDTO;
 import com.example.Event_Manager.models.user.dto.request.UpdateUserDTO;
 import com.example.Event_Manager.models.user.enums.Role;
 import com.example.Event_Manager.models.user.enums.Status;
@@ -107,31 +106,6 @@ public class UserIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName", is("Jan")))
                 .andExpect(jsonPath("$.phoneNumber", is("987654321")));
-    }
-
-    @Test
-    void createUser_ShouldSucceed_WhenAdminCreatesUser() throws Exception {
-        CreateUserDTO createDTO = new CreateUserDTO(
-                "New", "User", "new@user.com", "123456799", "password123", Role.ATTENDEE
-        );
-
-        mockMvc.perform(post("/api/users")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email", is("new@user.com")));
-    }
-
-    @Test
-    void createUser_ShouldFail_WhenAttendeeTriesToCreate() throws Exception {
-        CreateUserDTO createDTO = new CreateUserDTO("New", "User", "zle@user.com", "123456789", "pass", Role.ADMIN);
-
-        mockMvc.perform(post("/api/users")
-                        .header("Authorization", "Bearer " + attendeeToken) //zwykły user
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDTO)))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
