@@ -8,6 +8,9 @@ import com.example.Event_Manager.models.event.dto.response.EventSummaryDTO;
 import com.example.Event_Manager.models.event.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
@@ -59,44 +61,51 @@ public class EventController implements EventApi {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventDTO>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
+    public ResponseEntity<Page<EventDTO>> getAllEvents(
+            @PageableDefault(sort = "id") Pageable pageable
+    ) {
+        return ResponseEntity.ok(eventService.getAllEvents(pageable));
     }
 
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<EventDTO>> getEventsByCategory(
-            @PathVariable Long categoryId
+    public ResponseEntity<Page<EventDTO>> getEventsByCategory(
+            @PathVariable Long categoryId,
+            @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByCategory(categoryId));
+        return ResponseEntity.ok(eventService.getEventsByCategory(categoryId, pageable));
     }
 
     @GetMapping("/venue/{venueId}")
-    public ResponseEntity<List<EventDTO>> getEventsByVenue(
-            @PathVariable Long venueId
+    public ResponseEntity<Page<EventDTO>> getEventsByVenue(
+            @PathVariable Long venueId,
+            @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByVenue(venueId));
+        return ResponseEntity.ok(eventService.getEventsByVenue(venueId, pageable));
     }
 
     @GetMapping("/date-range")
-    public ResponseEntity<List<EventDTO>> getEventsByDateRange(
+    public ResponseEntity<Page<EventDTO>> getEventsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByDateRange(start, end));
+        return ResponseEntity.ok(eventService.getEventsByDateRange(start, end, pageable));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EventDTO>> searchEventsByName(
-            @RequestParam String name
+    public ResponseEntity<Page<EventDTO>> searchEventsByName(
+            @RequestParam String name,
+            @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.searchEventsByName(name));
+        return ResponseEntity.ok(eventService.searchEventsByName(name, pageable));
     }
 
     @GetMapping("/organizer/{organizerId}")
-    public ResponseEntity<List<EventDTO>> getEventsByOrganizer(
-            @PathVariable Long organizerId
+    public ResponseEntity<Page<EventDTO>> getEventsByOrganizer(
+            @PathVariable Long organizerId,
+            @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerId));
+        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerId, pageable));
     }
 
     @GetMapping("/{eventId}/summary")
@@ -106,8 +115,10 @@ public class EventController implements EventApi {
     }
 
     @GetMapping("/organizer/name/{organizerName}")
-    public ResponseEntity<List<EventDTO>> getEventsByOrganizer(
-            @PathVariable String organizerName) {
-        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerName));
+    public ResponseEntity<Page<EventDTO>> getEventsByOrganizerName(
+            @PathVariable String organizerName,
+            @PageableDefault(sort = "id") Pageable pageable
+    ) {
+        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerName, pageable));
     }
 }

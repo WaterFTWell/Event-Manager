@@ -17,7 +17,7 @@ public class VenueValidation implements BaseValidation {
     @Override
     public void checkIfIdValid(Long id) {
         if(id == null || id <= 0) {
-            throw new VenueNotFoundException("Venue with this id is not in database.");
+            throw new VenueNotFoundException("Venue ID is not valid.");
         }
     }
 

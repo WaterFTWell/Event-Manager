@@ -2,6 +2,7 @@ package com.example.Event_Manager.models.category.controller;
 
 import com.example.Event_Manager.models._util.ErrorResponse;
 import com.example.Event_Manager.models._util.RequestEmptyException;
+import com.example.Event_Manager.models.category.exceptions.CategoriesNotFoundException;
 import com.example.Event_Manager.models.category.exceptions.CategoryAlreadyExistsException;
 import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.models.category.exceptions.InvalidCategoryException;
@@ -47,6 +48,16 @@ public class CategoryControllerAdvice {
 
     @ExceptionHandler(InvalidCategoryException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCategoryException(InvalidCategoryException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(CategoriesNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCategoriesNotFoundException(CategoriesNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),

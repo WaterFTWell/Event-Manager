@@ -1,6 +1,7 @@
 package com.example.Event_Manager.unit.review;
 
 import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.models.review.Review;
 import com.example.Event_Manager.models.review.exceptions.ReviewNotFoundException;
 import com.example.Event_Manager.models.review.repository.ReviewRepository;
 import com.example.Event_Manager.models.review.service.ReviewService;
@@ -46,14 +47,24 @@ public class DeleteReviewTest {
         // Given
         Long reviewId = 1L;
         Long userId = 10L;
+
+        Review review = new Review();
+        review.setId(reviewId);
+
         User user = new User();
         user.setId(userId);
 
         doNothing().when(reviewValidation).checkIfRequestNotNull(reviewId);
         doNothing().when(reviewValidation).checkIfIdValid(reviewId);
         doNothing().when(userValidation).checkIfIdValid(userId);
-        doNothing().when(reviewRepository).deleteById(reviewId);
+
+        when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(review));
+        doNothing().when(reviewValidation).checkIfObjectExist(review);
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        doNothing().when(userValidation).checkIfObjectExist(user);
+
+        doNothing().when(reviewRepository).deleteById(reviewId);
 
         // When
         reviewService.deleteReview(reviewId, userId);
@@ -62,8 +73,11 @@ public class DeleteReviewTest {
         verify(reviewValidation).checkIfRequestNotNull(reviewId);
         verify(reviewValidation).checkIfIdValid(reviewId);
         verify(userValidation).checkIfIdValid(userId);
+        verify(reviewRepository).getReviewById(reviewId);
+        verify(reviewValidation).checkIfObjectExist(review);
+        verify(userRepository).findById(userId);
+        verify(userValidation).checkIfObjectExist(user);
         verify(reviewRepository).deleteById(reviewId);
-        verifyNoMoreInteractions(reviewRepository, reviewValidation, userValidation);
     }
 
     @Test
@@ -79,13 +93,13 @@ public class DeleteReviewTest {
         // When & Then
         ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
             reviewService.deleteReview(reviewId, userId);
-        }, "Should throw IllegalArgumentException for null reviewId.");
+        }, "Should throw ReviewNotFoundException for null reviewId.");
 
         assertEquals("Request cannot be null.", exception.getMessage());
 
         verify(reviewValidation).checkIfRequestNotNull(reviewId);
         verifyNoMoreInteractions(reviewValidation);
-        verifyNoInteractions(userValidation, reviewRepository);
+        verifyNoInteractions(userValidation, reviewRepository, userRepository);
     }
 
     @Test
@@ -106,6 +120,9 @@ public class DeleteReviewTest {
 
         assertEquals("ID must be greater than 0.", exception.getMessage());
 
+        verify(reviewValidation).checkIfRequestNotNull(invalidReviewId);
+        verify(reviewValidation).checkIfIdValid(invalidReviewId);
+        verify(reviewRepository, never()).getReviewById(anyLong());
         verify(reviewRepository, never()).deleteById(anyLong());
     }
 
@@ -128,6 +145,65 @@ public class DeleteReviewTest {
 
         assertEquals("ID must be greater than 0.", exception.getMessage());
 
+        verify(reviewValidation).checkIfRequestNotNull(reviewId);
+        verify(reviewValidation).checkIfIdValid(reviewId);
+        verify(userValidation).checkIfIdValid(invalidUserId);
+        verify(reviewRepository, never()).getReviewById(anyLong());
+        verify(reviewRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when review is not found")
+    void deleteReview_shouldThrowException_whenReviewNotFound() {
+        // Given
+        Long reviewId = 999L;
+        Long userId = 10L;
+
+        doNothing().when(reviewValidation).checkIfRequestNotNull(reviewId);
+        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+
+        when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.empty());
+
+        // When & Then
+        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
+            reviewService.deleteReview(reviewId, userId);
+        });
+
+        assertEquals("Review not found", exception.getMessage());
+
+        verify(reviewRepository).getReviewById(reviewId);
+        verify(reviewRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user is not found")
+    void deleteReview_shouldThrowException_whenUserNotFound() {
+        // Given
+        Long reviewId = 1L;
+        Long userId = 999L;
+
+        Review review = new Review();
+        review.setId(reviewId);
+
+        doNothing().when(reviewValidation).checkIfRequestNotNull(reviewId);
+        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+
+        when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(review));
+        doNothing().when(reviewValidation).checkIfObjectExist(review);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // When & Then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            reviewService.deleteReview(reviewId, userId);
+        });
+
+        assertEquals("User not found", exception.getMessage());
+
+        verify(reviewRepository).getReviewById(reviewId);
+        verify(userRepository).findById(userId);
         verify(reviewRepository, never()).deleteById(anyLong());
     }
 }

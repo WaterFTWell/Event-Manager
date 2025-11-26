@@ -4,14 +4,18 @@ import com.example.Event_Manager.auth.repository.UserRepository;
 import com.example.Event_Manager.models.event.Event;
 import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
 import com.example.Event_Manager.models.event.repository.EventRepository;
+import com.example.Event_Manager.models.event.validation.EventValidation;
 import com.example.Event_Manager.models.review.Review;
 import com.example.Event_Manager.models.review.dto.request.CreateReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.models.review.mapper.ReviewMapper;
 import com.example.Event_Manager.models.review.repository.ReviewRepository;
 import com.example.Event_Manager.models.review.service.ReviewService;
+import com.example.Event_Manager.models.review.validation.ReviewValidation;
 import com.example.Event_Manager.models.user.User;
 import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.models.venue.validation.VenueValidation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +38,18 @@ public class CreateReviewTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private ReviewValidation reviewValidation;
+
+    @Mock
+    private UserValidation userValidation;
+
+    @Mock
+    private VenueValidation venueValidation;
+
+    @Mock
+    private EventValidation eventValidation;
 
     @Mock
     private UserRepository userRepository;
