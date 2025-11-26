@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**",
                                 "/api/categories", "/api/categories/**", "/api/reviews/event/**",
-                                "/api/countries", "/api/countries/**").permitAll()
+                                "/api/countries", "/api/countries/**", "/api/cities", "/api/cities/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
