@@ -8,11 +8,13 @@ import com.example.Event_Manager.models.user.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/interested")
@@ -35,7 +37,10 @@ public class InterestedController {
     @Operation(summary = "Get events user is interested in")
     @GetMapping
     @IsAttendee
-    public ResponseEntity<List<InterestedDTO>> getMyInterests(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(interestedService.getUserInterests(user.getId()));
+    public ResponseEntity<Page<InterestedDTO>> getMyInterests(
+            @AuthenticationPrincipal User user,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(interestedService.getUserInterests(user.getId(), pageable));
     }
 }

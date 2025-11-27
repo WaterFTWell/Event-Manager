@@ -9,12 +9,17 @@ import com.example.Event_Manager.models.interested.dto.response.InterestedDTO;
 import com.example.Event_Manager.models.interested.repository.InterestedRepository;
 import com.example.Event_Manager.models.interested.service.InterestedService;
 import com.example.Event_Manager.models.user.User;
+import com.example.Event_Manager.models.user.validation.UserValidation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
 import java.util.List;
@@ -25,8 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Interested Service Unit Test")
@@ -37,6 +41,8 @@ public class InterestedServiceTest {
     private EventRepository eventRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private UserValidation userValidation;
 
     @InjectMocks
     private InterestedService interestedService;
@@ -49,7 +55,7 @@ public class InterestedServiceTest {
         Long eventId = 100L;
         User user = User.builder().id(userId).build();
         Event event = Event.builder().id(eventId).build();
-
+        doNothing().when(userValidation).checkIfIdValid(userId);
         // mockujemy ze nie ma jeszcze lajka w bazie
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -70,7 +76,7 @@ public class InterestedServiceTest {
         Long userId = 1L;
         Long eventId = 100L;
         Interested existingInterest = new Interested();
-
+        doNothing().when(userValidation).checkIfIdValid(userId);
         // mockujemy ze lajk juz jest
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.of(existingInterest));
 
@@ -84,25 +90,27 @@ public class InterestedServiceTest {
 
     @Test
     @DisplayName("Should return list of interested events")
-    void getUserInterests_shouldReturnList() {
+    void getUserInterests_shouldReturnPage() {
         //Given
         Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
         Date now = new Date();
         Event event = Event.builder().id(10L).name("Fajny Event").build();
         Interested interested = Interested.builder()
                 .event(event)
                 .markedAt(now)
                 .build();
+        doNothing().when(userValidation).checkIfIdValid(userId);
+        Page<Interested> page = new PageImpl<>(List.of(interested));
 
-        when(interestedRepository.findAllByUserId(userId)).thenReturn(List.of(interested));
-
+        when(userRepository.existsById(userId)).thenReturn(true); //serwis sprawdza czy user istnieje
+        when(interestedRepository.findAllByUserId(userId, pageable)).thenReturn(page);
         //When
-        List<InterestedDTO> result = interestedService.getUserInterests(userId);
-
+        Page<InterestedDTO> result = interestedService.getUserInterests(userId, pageable);
         //Then
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("Fajny Event", result.get(0).eventName());
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Fajny Event", result.getContent().get(0).eventName());
     }
 
     @Test
@@ -112,28 +120,34 @@ public class InterestedServiceTest {
         Long userId = 1L;
         Long eventId = 999L;
 
+        doNothing().when(userValidation).checkIfIdValid(userId);
+
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).build()));
         //mockujemy event nie znaleziony,pusty Optional
         when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
 
         //Then
-        assertThrows(EventNotFoundException.class, () -> {
-            interestedService.toggleInterest(userId, eventId);
-        });
+        assertThrows(EventNotFoundException.class, () ->
+            interestedService.toggleInterest(userId, eventId)
+        );
     }
     @Test
     @DisplayName("Should return empty list when user has empty list(no interests)")
     void getUserInterests_shouldReturnEmptyList_whenNoInterestsFound() {
         //given
         Long userId = 1L;
-        when(interestedRepository.findAllByUserId(userId)).thenReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 10);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(interestedRepository.findAllByUserId(userId, pageable)).thenReturn(Page.empty());
+
 
         //when
-        List<InterestedDTO> result = interestedService.getUserInterests(userId);
+        Page<InterestedDTO> result = interestedService.getUserInterests(userId, pageable);
 
         // Then
         assertNotNull(result);
-        assertEquals(0, result.size());
+        assertEquals(0, result.getTotalElements());
     }
 }

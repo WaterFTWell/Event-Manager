@@ -152,9 +152,9 @@ public class InterestedIntegrationTest {
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].eventName", is("Super Event")))
-                .andExpect(jsonPath("$[1].eventName", is("Super Event2")));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].eventName", is("Super Event")))
+                .andExpect(jsonPath("$.content[1].eventName", is("Super Event2")));
     }
 
     @Test
@@ -168,7 +168,7 @@ public class InterestedIntegrationTest {
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(1)));
 
         //wymuszamy czyszczenie kontekstu
         entityManager.clear();
@@ -182,7 +182,7 @@ public class InterestedIntegrationTest {
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)));
     }
 
     @Test
