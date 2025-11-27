@@ -2,8 +2,7 @@ package com.example.Event_Manager.integration;
 
 import com.example.Event_Manager.auth.dto.request.AuthRequest;
 import com.example.Event_Manager.auth.dto.request.RegisterRequest;
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.user.enums.Role;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +55,6 @@ public class AuthIntegrationTest {
                 .email("jan@test.com")
                 .phoneNumber("123456789")
                 .password("password123")
-                .role(Role.ATTENDEE)
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
@@ -70,8 +68,6 @@ public class AuthIntegrationTest {
     @ParameterizedTest
     @MethodSource("provideInvalidRegisterRequests")
     void shouldReturnBadRequest_WhenInputIsInvalid(RegisterRequest invalidRequest) throws Exception {
-        //ten test wykona się tyle razy dokladnie ile jest obiektów ma metoda provideInvalidRegisterRequests
-
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -80,11 +76,11 @@ public class AuthIntegrationTest {
 
     private static Stream<RegisterRequest> provideInvalidRegisterRequests() {
         return Stream.of(
-                RegisterRequest.builder().firstName("").lastName("Janowski").email("jan@test.com").phoneNumber("123456789").password("password123").role(Role.ATTENDEE).build(),//puste imie
-                RegisterRequest.builder().firstName("Jan").lastName("").email("jan@test.com").phoneNumber("123456789").password("password123").role(Role.ATTENDEE).build(),//puste nazwisko
-                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("janT_Ttest.com").phoneNumber("123456789").password("password123").role(Role.ATTENDEE).build(),//zły format email
-                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("jan@test.com").phoneNumber("123456789").password("").role(Role.ATTENDEE).build(),//puste haslo
-                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("jan@test.com").phoneNumber("").password("password123").role(Role.ATTENDEE).build()//pusty numer telefonu
+                RegisterRequest.builder().firstName("").lastName("Janowski").email("jan@test.com").phoneNumber("123456789").password("password123").build(),//puste imie
+                RegisterRequest.builder().firstName("Jan").lastName("").email("jan@test.com").phoneNumber("123456789").password("password123").build(),//puste nazwisko
+                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("janT_Ttest.com").phoneNumber("123456789").password("password123").build(),//zły format email
+                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("jan@test.com").phoneNumber("123456789").password("").build(),//puste haslo
+                RegisterRequest.builder().firstName("Jan").lastName("Janowski").email("jan@test.com").phoneNumber("").password("password123").build()//pusty numer telefonu
         );
     }
     @Test
@@ -96,7 +92,6 @@ public class AuthIntegrationTest {
                 .email("user@test.com")
                 .phoneNumber("111111111")
                 .password("password111")
-                .role(Role.ATTENDEE)
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
@@ -111,7 +106,6 @@ public class AuthIntegrationTest {
                 .email("user@test.com")
                 .phoneNumber("222222222")
                 .password("password222")
-                .role(Role.ATTENDEE)
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
@@ -131,7 +125,6 @@ public class AuthIntegrationTest {
                 .email("jan@test.com")
                 .phoneNumber("123456789")
                 .password("password123")
-                .role(Role.ORGANIZER)
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
@@ -158,7 +151,6 @@ public class AuthIntegrationTest {
                 .email("jan@test.com")
                 .phoneNumber("123456789")
                 .password("password123")
-                .role(Role.ATTENDEE)
                 .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")

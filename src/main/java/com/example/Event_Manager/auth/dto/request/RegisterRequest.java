@@ -1,6 +1,5 @@
 package com.example.Event_Manager.auth.dto.request;
 
-import com.example.Event_Manager.models.user.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -36,5 +35,4 @@ public class RegisterRequest {
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
-    private Role role;
 }

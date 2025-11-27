@@ -1,14 +1,13 @@
 package com.example.Event_Manager.unit.favorite;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.favorite.Favorite;
-import com.example.Event_Manager.models.favorite.exceptions.InvalidFavoriteActionException;
-import com.example.Event_Manager.models.favorite.repository.FavoriteRepository;
-import com.example.Event_Manager.models.favorite.service.FavoriteService;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.favorite.Favorite;
+import com.example.Event_Manager.favorite.exceptions.InvalidFavoriteActionException;
+import com.example.Event_Manager.favorite.repository.FavoriteRepository;
+import com.example.Event_Manager.favorite.service.FavoriteService;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.exceptions.UserNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +28,6 @@ public class ToggleFavoriteTest {
 
     @Mock private FavoriteRepository favoriteRepository;
     @Mock private UserRepository userRepository;
-    @Mock private UserValidation userValidation;
 
     @InjectMocks private FavoriteService favoriteService;
 
@@ -42,7 +40,6 @@ public class ToggleFavoriteTest {
         User user = User.builder().id(userId).build();
         User organizer = User.builder().id(organizerId).role(Role.ORGANIZER).build();
 
-        doNothing().when(userValidation).checkIfIdValid(any());
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.findById(organizerId)).thenReturn(Optional.of(organizer));
@@ -63,7 +60,6 @@ public class ToggleFavoriteTest {
         Long organizerId = 2L;
         Favorite existingFavorite = new Favorite();
 
-        doNothing().when(userValidation).checkIfIdValid(any());
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.of(existingFavorite));
 
         //When
@@ -78,7 +74,6 @@ public class ToggleFavoriteTest {
     @DisplayName("Should throw exception when trying to favorite self")
     void toggleFavorite_Self_ThrowsException() {
         Long userId = 1L;
-        doNothing().when(userValidation).checkIfIdValid(any());
 
         assertThrows(InvalidFavoriteActionException.class, () -> favoriteService.toggleFavorite(userId, userId));
         verify(favoriteRepository, never()).save(any());
@@ -93,7 +88,6 @@ public class ToggleFavoriteTest {
         User user = User.builder().id(userId).build();
         User target = User.builder().id(targetId).role(Role.ATTENDEE).build(); //zwykły user
 
-        doNothing().when(userValidation).checkIfIdValid(any());
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, targetId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.findById(targetId)).thenReturn(Optional.of(target));
@@ -109,7 +103,6 @@ public class ToggleFavoriteTest {
         Long userId = 99L;
         Long organizerId = 2L;
 
-        doNothing().when(userValidation).checkIfIdValid(any());
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.empty());
         //symulujemy że baza zwraca empty
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -126,7 +119,6 @@ public class ToggleFavoriteTest {
         Long organizerId = 99L;
         User user = User.builder().id(userId).build();
 
-        doNothing().when(userValidation).checkIfIdValid(any());
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         //Symulujemy brak organizatora

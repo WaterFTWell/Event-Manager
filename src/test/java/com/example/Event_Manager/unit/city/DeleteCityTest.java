@@ -1,10 +1,10 @@
 package com.example.Event_Manager.unit.city;
 
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.exceptions.CityNotFoundException;
-import com.example.Event_Manager.models.city.repository.CityRepository;
-import com.example.Event_Manager.models.city.service.CityService;
-import com.example.Event_Manager.models.country.Country;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.city.exceptions.CityNotFoundException;
+import com.example.Event_Manager.city.repository.CityRepository;
+import com.example.Event_Manager.city.service.CityService;
+import com.example.Event_Manager.country.Country;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
