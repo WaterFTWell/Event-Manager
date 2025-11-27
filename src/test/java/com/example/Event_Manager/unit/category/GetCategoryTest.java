@@ -1,14 +1,12 @@
 package com.example.Event_Manager.unit.category;
 
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.models.category.exceptions.CategoriesNotFoundException;
-import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
-import com.example.Event_Manager.models.category.exceptions.InvalidCategoryException;
-import com.example.Event_Manager.models.category.mapper.CategoryMapper;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
-import com.example.Event_Manager.models.category.service.CategoryService;
-import com.example.Event_Manager.models.category.validation.CategoryValidation;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.dto.response.CategoryDTO;
+import com.example.Event_Manager.category.exceptions.CategoriesNotFoundException;
+import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
+import com.example.Event_Manager.category.mapper.CategoryMapper;
+import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.category.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,8 +37,8 @@ public class GetCategoryTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-    @Mock
-    private CategoryValidation categoryValidation;
+//    @Mock
+//    private CategoryValidation categoryValidation;
 
     @InjectMocks
     private CategoryService categoryService;
@@ -64,9 +62,7 @@ public class GetCategoryTest {
     void getCategoryById_shouldReturnCategory_whenIdExists() {
         // Given
         Long existingId = 1L;
-        doNothing().when(categoryValidation).checkIfIdValid(existingId);
         when(categoryRepository.findById(existingId)).thenReturn(Optional.of(category1));
-        doNothing().when(categoryValidation).checkIfObjectExist(category1);
         when(categoryMapper.toDTO(category1)).thenReturn(categoryDTO1);
 
         // When
@@ -84,31 +80,14 @@ public class GetCategoryTest {
     void getCategoryById_shouldThrowException_whenIdDoesNotExist() {
         // Given
         Long nonExistentId = 99L;
-        doNothing().when(categoryValidation).checkIfIdValid(nonExistentId);
         when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // When & Then
-        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
-            categoryService.getCategoryById(nonExistentId);
-        });
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategoryById(nonExistentId));
 
         assertEquals("Category not found in database.", exception.getMessage());
+        verify(categoryRepository).findById(nonExistentId);
         verify(categoryMapper, never()).toDTO(any());
-    }
-
-    @Test
-    @DisplayName("getCategoryById: Should throw InvalidCategoryException for non-positive ID")
-    void getCategoryById_shouldThrowException_whenIdIsNotPositive() {
-        // Given
-        Long invalidId = 0L;
-        doThrow(new InvalidCategoryException("ID must be positive.")).when(categoryValidation).checkIfIdValid(invalidId);
-
-        // When & Then
-        assertThrows(InvalidCategoryException.class, () -> {
-            categoryService.getCategoryById(invalidId);
-        });
-
-        verify(categoryRepository, never()).findById(any());
     }
 
     @Test
@@ -188,7 +167,7 @@ public class GetCategoryTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());
-        assertEquals(categoryDTO1, result.getContent().get(0));
+        assertEquals(categoryDTO1, result.getContent().getFirst());
         assertEquals(1, result.getTotalPages());
         assertFalse(result.hasNext());
         assertFalse(result.hasPrevious());
@@ -207,11 +186,10 @@ public class GetCategoryTest {
         when(categoryRepository.findAll(pageable)).thenReturn(emptyPage);
 
         // When & Then
-        CategoriesNotFoundException exception = assertThrows(CategoriesNotFoundException.class, () -> {
-            categoryService.getAllCategories(pageable);
-        });
+        CategoriesNotFoundException exception = assertThrows(CategoriesNotFoundException.class, () -> categoryService.getAllCategories(pageable));
 
         assertEquals("No categories found in database.", exception.getMessage());
+        verify(categoryRepository).findAll(pageable);
         verify(categoryMapper, never()).toDTO(any());
     }
 

@@ -1,14 +1,13 @@
 package com.example.Event_Manager.unit.user;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.dto.request.UpdateUserDTO;
-import com.example.Event_Manager.models.user.dto.response.UserDTO;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.mapper.UserMapper;
-import com.example.Event_Manager.models.user.service.UserService;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.dto.request.UpdateUserDTO;
+import com.example.Event_Manager.user.dto.response.UserDTO;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.user.mapper.UserMapper;
+import com.example.Event_Manager.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +27,6 @@ public class UpdateUserTest {
 
     @Mock private UserRepository userRepository;
     @Mock private UserMapper userMapper;
-    @Mock private UserValidation userValidation;
 
     @InjectMocks private UserService userService;
 
@@ -41,8 +39,6 @@ public class UpdateUserTest {
         User existingUser = User.builder().id(userId).firstName("Stary").build();
         UserDTO expectedResponse = new UserDTO(userId, "Nowy", "Kowalski", "email@email.email", "987654321", Role.ATTENDEE);
 
-        doNothing().when(userValidation).checkIfIdValid(userId);
-        doNothing().when(userValidation).checkIfRequestNotNull(updateDTO);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         //save zwraca zaktualizowanego usera
@@ -68,7 +64,6 @@ public class UpdateUserTest {
         Long userId = 99L;
         UpdateUserDTO updateDTO = new UpdateUserDTO("A", "B", "123");
 
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         //Then

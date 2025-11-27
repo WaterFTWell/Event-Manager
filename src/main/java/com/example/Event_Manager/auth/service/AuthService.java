@@ -3,10 +3,10 @@ package com.example.Event_Manager.auth.service;
 import com.example.Event_Manager.auth.dto.request.AuthRequest;
 import com.example.Event_Manager.auth.dto.response.AuthResponse;
 import com.example.Event_Manager.auth.dto.request.RegisterRequest;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.enums.Status;
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.enums.Status;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -61,6 +61,7 @@ public class AuthService {
                 .build();
     }
 
+    // 3 selecty przy logowaniu xddd wez to popraw rajmund
     public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

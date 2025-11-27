@@ -2,11 +2,11 @@ package com.example.Event_Manager.unit.auth;
 import com.example.Event_Manager.auth.dto.request.AuthRequest;
 import com.example.Event_Manager.auth.dto.request.RegisterRequest;
 import com.example.Event_Manager.auth.dto.response.AuthResponse;
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.service.AuthService;
 import com.example.Event_Manager.auth.util.JwtUtil;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +45,7 @@ public class AuthServiceTest {
     @DisplayName("Should register user when data is valid")
     void shouldRegisterUser_WhenDataIsValid() {
         //Given
-        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "jan@gmail.com", "123456789", "password123", Role.ATTENDEE);
+        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "jan@gmail.com", "123456789", "password123");
 
         //mockujemy nie istnienie uzytkownika o podanym emailu i numerze telefonu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
@@ -69,7 +69,7 @@ public class AuthServiceTest {
     @DisplayName("Should not register user when email exists")
     void shouldNotRegisterUser_WhenEmailExist() {
         //Given
-        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "zajetyEmail@gmail.com", "123456789", "password123", Role.ATTENDEE);
+        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "zajetyEmail@gmail.com", "123456789", "password123");
 
         //mockujemy ze istnieje uzytkownika o podanym emailu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
@@ -88,7 +88,7 @@ public class AuthServiceTest {
     @DisplayName("Should not register user when phone number exists")
     void shouldNotRegisterUser_WhenPhoneNumberExist() {
         //Given
-        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "janEmail@gmail.com", "123456789", "password123", Role.ATTENDEE);
+        RegisterRequest request = new RegisterRequest("Jan", "Janowski", "janEmail@gmail.com", "123456789", "password123");
 
         //mockujemy ze istnieje uzytkownika o podanym nr telefonu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);

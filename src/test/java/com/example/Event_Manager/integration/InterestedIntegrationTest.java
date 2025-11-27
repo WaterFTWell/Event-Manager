@@ -1,18 +1,18 @@
 package com.example.Event_Manager.integration;
 
 
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.interested.repository.InterestedRepository;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.enums.Status;
-import com.example.Event_Manager.models.venue.Venue;
-import com.example.Event_Manager.models.venue.repository.VenueRepository;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.interested.repository.InterestedRepository;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.enums.Status;
+import com.example.Event_Manager.venue.Venue;
+import com.example.Event_Manager.venue.repository.VenueRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -30,7 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
 
-import static com.example.Event_Manager.models.event.enums.Status.PUBLISHED;
+import static com.example.Event_Manager.event.enums.Status.PUBLISHED;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

@@ -1,14 +1,14 @@
 package com.example.Event_Manager.integration;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.enums.Status;
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.dto.request.CreateCategoryDTO;
-import com.example.Event_Manager.models.category.dto.request.UpdateCategoryDTO;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.enums.Status;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.dto.request.CreateCategoryDTO;
+import com.example.Event_Manager.category.dto.request.UpdateCategoryDTO;
+import com.example.Event_Manager.category.repository.CategoryRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

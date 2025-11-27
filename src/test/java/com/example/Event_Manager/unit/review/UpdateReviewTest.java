@@ -1,19 +1,16 @@
 package com.example.Event_Manager.unit.review;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models._util.RequestEmptyException;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.review.Review;
-import com.example.Event_Manager.models.review.dto.request.UpdateReviewDTO;
-import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
-import com.example.Event_Manager.models.review.exceptions.ReviewNotFoundException;
-import com.example.Event_Manager.models.review.mapper.ReviewMapper;
-import com.example.Event_Manager.models.review.repository.ReviewRepository;
-import com.example.Event_Manager.models.review.service.ReviewService;
-import com.example.Event_Manager.models.review.validation.ReviewValidation;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.review.Review;
+import com.example.Event_Manager.review.dto.request.UpdateReviewDTO;
+import com.example.Event_Manager.review.dto.response.ReviewDTO;
+import com.example.Event_Manager.review.exceptions.ReviewNotFoundException;
+import com.example.Event_Manager.review.mapper.ReviewMapper;
+import com.example.Event_Manager.review.repository.ReviewRepository;
+import com.example.Event_Manager.review.service.ReviewService;
+import com.example.Event_Manager.review.validation.ReviewValidation;
+import com.example.Event_Manager.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,9 +39,6 @@ public class UpdateReviewTest {
 
     @Mock
     private ReviewValidation reviewValidation;
-
-    @Mock
-    private UserValidation userValidation;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -84,18 +78,15 @@ public class UpdateReviewTest {
         ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(),
                 userId, user.getFullName(), 9, "Updated comment!", createdAt);
 
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
-        doNothing().when(userValidation).checkIfIdValid(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        doNothing().when(userValidation).checkIfObjectExist(user);
+        // doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO); // USUNIĘTE
+        // doNothing().when(reviewValidation).checkIfIdValid(reviewId); // USUNIĘTE
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(existingReview));
         doNothing().when(reviewMapper).updateEntity(existingReview, updateDTO);
         when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
         when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
 
         // When
-        ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, userId);
+        ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, user);
 
         // Then
         assertNotNull(result);
@@ -103,11 +94,6 @@ public class UpdateReviewTest {
         assertEquals(expectedDTO.rating(), result.rating());
         assertEquals(expectedDTO.comment(), result.comment());
 
-        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
-        verify(reviewValidation).checkIfIdValid(reviewId);
-        verify(userValidation).checkIfIdValid(userId);
-        verify(userRepository).findById(userId);
-        verify(userValidation).checkIfObjectExist(user);
         verify(reviewRepository).getReviewById(reviewId);
         verify(reviewMapper).updateEntity(existingReview, updateDTO);
         verify(reviewRepository).save(existingReview);
@@ -123,134 +109,20 @@ public class UpdateReviewTest {
         UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
         User user = User.builder().id(userId).firstName("Jan").lastName("Kowalski").build();
 
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doNothing().when(reviewValidation).checkIfIdValid(nonExistentReviewId);
-        doNothing().when(userValidation).checkIfIdValid(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        doNothing().when(userValidation).checkIfObjectExist(user);
         when(reviewRepository.getReviewById(nonExistentReviewId)).thenReturn(Optional.empty());
 
         // When & Then
         ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
-            reviewService.updateReview(nonExistentReviewId, updateDTO, userId);
+            reviewService.updateReview(nonExistentReviewId, updateDTO, user);
         });
 
         assertEquals("Review not found", exception.getMessage());
 
-        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
-        verify(reviewValidation).checkIfIdValid(nonExistentReviewId);
-        verify(userValidation).checkIfIdValid(userId);
-        verify(userRepository).findById(userId);
-        verify(userValidation).checkIfObjectExist(user);
         verify(reviewRepository).getReviewById(nonExistentReviewId);
         verify(reviewRepository, never()).save(any(Review.class));
         verify(reviewMapper, never()).updateEntity(any(Review.class), any(UpdateReviewDTO.class));
     }
 
-    @Test
-    @DisplayName("Should throw exception when update DTO is null")
-    void updateReview_shouldThrowException_whenDtoIsNull() {
-        // Given
-        Long reviewId = 1L;
-        Long userId = 10L;
-        UpdateReviewDTO nullDto = null;
-
-        doThrow(new RequestEmptyException("Request cannot be null."))
-                .when(reviewValidation).checkIfRequestNotNull(nullDto);
-
-        // When & Then
-        RequestEmptyException exception = assertThrows(RequestEmptyException.class, () -> {
-            reviewService.updateReview(reviewId, nullDto, userId);
-        });
-
-        assertEquals("Request cannot be null.", exception.getMessage());
-
-        verify(reviewValidation).checkIfRequestNotNull(nullDto);
-        verify(reviewValidation, never()).checkIfIdValid(anyLong());
-        verify(userRepository, never()).findById(anyLong());
-        verify(reviewRepository, never()).getReviewById(anyLong());
-        verify(reviewRepository, never()).save(any(Review.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid review ID")
-    void updateReview_shouldThrowException_whenReviewIdIsInvalid() {
-        // Given
-        Long invalidReviewId = -1L;
-        Long userId = 10L;
-        UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
-
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doThrow(new ReviewNotFoundException("ID must be greater than 0."))
-                .when(reviewValidation).checkIfIdValid(invalidReviewId);
-
-        // When & Then
-        ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
-            reviewService.updateReview(invalidReviewId, updateDTO, userId);
-        });
-
-        assertEquals("ID must be greater than 0.", exception.getMessage());
-
-        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
-        verify(reviewValidation).checkIfIdValid(invalidReviewId);
-        verify(userValidation, never()).checkIfIdValid(anyLong());
-        verify(reviewRepository, never()).getReviewById(anyLong());
-    }
-
-    @Test
-    @DisplayName("Should throw exception for invalid user ID")
-    void updateReview_shouldThrowException_whenUserIdIsInvalid() {
-        // Given
-        Long reviewId = 1L;
-        Long invalidUserId = -5L;
-        UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
-
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
-        doThrow(new UserNotFoundException("ID must be greater than 0."))
-                .when(userValidation).checkIfIdValid(invalidUserId);
-
-        // When & Then
-        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            reviewService.updateReview(reviewId, updateDTO, invalidUserId);
-        });
-
-        assertEquals("ID must be greater than 0.", exception.getMessage());
-
-        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
-        verify(reviewValidation).checkIfIdValid(reviewId);
-        verify(userValidation).checkIfIdValid(invalidUserId);
-        verify(userRepository, never()).findById(anyLong());
-        verify(reviewRepository, never()).getReviewById(anyLong());
-    }
-
-    @Test
-    @DisplayName("Should throw UserNotFoundException when user does not exist")
-    void updateReview_shouldThrowException_whenUserNotFound() {
-        // Given
-        Long reviewId = 1L;
-        Long nonExistentUserId = 999L;
-        UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
-
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
-        doNothing().when(userValidation).checkIfIdValid(nonExistentUserId);
-        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
-
-        // When & Then
-        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            reviewService.updateReview(reviewId, updateDTO, nonExistentUserId);
-        });
-
-        assertEquals("User not found", exception.getMessage());
-
-        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
-        verify(reviewValidation).checkIfIdValid(reviewId);
-        verify(userValidation).checkIfIdValid(nonExistentUserId);
-        verify(userRepository).findById(nonExistentUserId);
-        verify(reviewRepository, never()).getReviewById(anyLong());
-        verify(reviewRepository, never()).save(any(Review.class));
-    }
 
     @Test
     @DisplayName("Should update only rating when comment is null")
@@ -282,18 +154,13 @@ public class UpdateReviewTest {
         ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(),
                 userId, user.getFullName(), 10, "Original comment", null);
 
-        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
-        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
-        doNothing().when(userValidation).checkIfIdValid(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        doNothing().when(userValidation).checkIfObjectExist(user);
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(existingReview));
         doNothing().when(reviewMapper).updateEntity(existingReview, updateDTO);
         when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
         when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
 
         // When
-        ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, userId);
+        ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, user);
 
         // Then
         assertNotNull(result);
