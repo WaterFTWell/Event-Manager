@@ -11,6 +11,7 @@ import com.example.Event_Manager.models.review.dto.request.UpdateReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewSummaryDTO;
 import com.example.Event_Manager.models.review.exceptions.ReviewNotFoundException;
+import com.example.Event_Manager.models.review.exceptions.ReviewsNotFoundException;
 import com.example.Event_Manager.models.review.mapper.ReviewMapper;
 import com.example.Event_Manager.models.review.repository.ReviewRepository;
 import com.example.Event_Manager.models.review.validation.ReviewValidation;
@@ -19,6 +20,8 @@ import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
 import com.example.Event_Manager.models.user.validation.UserValidation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,6 +45,9 @@ public class ReviewService implements IReviewService {
     @Override
     @Transactional
     public ReviewDTO createReview(CreateReviewDTO review, Long userId) {
+        reviewValidation.checkIfRequestNotNull(review);
+        userValidation.checkIfIdValid(userId);
+
         Event event = eventRepository.findById(review.eventId())
                 .orElseThrow(() -> new EventNotFoundException("Event not found"));
         User user = userRepository.findById(userId)
@@ -58,9 +64,13 @@ public class ReviewService implements IReviewService {
     public ReviewDTO updateReview(Long reviewId, UpdateReviewDTO reviewRequest, Long userId) {
         reviewValidation.checkIfRequestNotNull(reviewRequest);
         reviewValidation.checkIfIdValid(reviewId);
+        userValidation.checkIfIdValid(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        userValidation.checkIfObjectExist(user);
         Review review = reviewRepository.getReviewById(reviewId)
             .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
-        reviewValidation.checkIfObjectExist(review);
 
         reviewMapper.updateEntity(review, reviewRequest);
         Review updated = reviewRepository.save(review);
@@ -74,31 +84,40 @@ public class ReviewService implements IReviewService {
         reviewValidation.checkIfIdValid(reviewId);
         userValidation.checkIfIdValid(userId);
 
+        Review review = reviewRepository.getReviewById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
+        reviewValidation.checkIfObjectExist(review);
+
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+        userValidation.checkIfObjectExist(user);
 
         reviewRepository.deleteById(reviewId);
     }
 
     @Override
-    public List<ReviewDTO> getReviewsForEvent(Long eventId) {
+    public Page<ReviewDTO> getReviewsForEvent(Long eventId, Pageable pageable) {
         eventValidation.checkIfIdValid(eventId);
-        var reviews = reviewRepository.findByEventId(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+        eventValidation.checkIfObjectExist(event);
+        Page<Review> reviews = reviewRepository.findByEventId(eventId, pageable);
+
         if (reviews == null || reviews.isEmpty()) {
-            throw new ReviewNotFoundException("No reviews found for event with id: " + eventId);
+            throw new ReviewsNotFoundException("No reviews found for event with id: " + eventId);
         }
-        return reviews.stream()
-                .map(reviewMapper::toDTO)
-                .toList();
+        return reviews.map(reviewMapper::toDTO);
     }
 
     @Override
     public ReviewSummaryDTO getEventReviewSummary(Long eventId) {
         eventValidation.checkIfIdValid(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
 
         var reviews = reviewRepository.findByEventId(eventId);
         if (reviews == null || reviews.isEmpty()) {
-            throw new ReviewNotFoundException("No reviews summary found for event with id: " + eventId);
+            throw new ReviewsNotFoundException("No reviews summary found for event with id: " + eventId);
         }
 
         double averageRating = reviews.stream()
@@ -107,9 +126,6 @@ public class ReviewService implements IReviewService {
                 .orElse(0.0);
 
         int totalReviews = reviews.size();
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
 
         List<ReviewDTO> reviewDTOs = reviews.stream()
                 .map(reviewMapper::toDTO)

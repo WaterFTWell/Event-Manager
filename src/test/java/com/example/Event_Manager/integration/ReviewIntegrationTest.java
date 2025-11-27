@@ -35,7 +35,6 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import static com.example.Event_Manager.models.event.enums.Status.PUBLISHED;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -228,17 +227,70 @@ public class ReviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should get reviews for a specific event")
-    void shouldGetReviewsForEvent() throws Exception {
+    @DisplayName("Should get paginated reviews for a specific event with default pagination")
+    void shouldGetPaginatedReviewsForEvent() throws Exception {
         createAndSaveReview(testEvent, testUser, 8, "First review");
         User anotherUser = createAndSaveUser("another@user.com", "987654321");
         createAndSaveReview(testEvent, anotherUser, 6, "Second review");
 
         mockMvc.perform(get("/api/reviews/event/" + testEvent.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].comment", is("First review")))
-                .andExpect(jsonPath("$[1].rating", is(6)));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()", is(2)))
+                .andExpect(jsonPath("$.content[0].comment", is("First review")))
+                .andExpect(jsonPath("$.content[1].rating", is(6)))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.size", is(10)))
+                .andExpect(jsonPath("$.number", is(0)));
+    }
+
+    @Test
+    @DisplayName("Should get paginated reviews with custom page size")
+    void shouldGetPaginatedReviewsWithCustomPageSize() throws Exception {
+        createAndSaveReview(testEvent, testUser, 8, "First review");
+        User anotherUser = createAndSaveUser("another@user.com", "987654321");
+        createAndSaveReview(testEvent, anotherUser, 6, "Second review");
+        User thirdUser = createAndSaveUser("third@user.com", "555555555");
+        createAndSaveReview(testEvent, thirdUser, 9, "Third review");
+
+        mockMvc.perform(get("/api/reviews/event/" + testEvent.getId())
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(2)))
+                .andExpect(jsonPath("$.totalElements", is(3)))
+                .andExpect(jsonPath("$.totalPages", is(2)))
+                .andExpect(jsonPath("$.size", is(2)))
+                .andExpect(jsonPath("$.number", is(0)));
+    }
+
+    @Test
+    @DisplayName("Should get second page of reviews")
+    void shouldGetSecondPageOfReviews() throws Exception {
+        createAndSaveReview(testEvent, testUser, 8, "First review");
+        User anotherUser = createAndSaveUser("another@user.com", "987654321");
+        createAndSaveReview(testEvent, anotherUser, 6, "Second review");
+        User thirdUser = createAndSaveUser("third@user.com", "555555555");
+        createAndSaveReview(testEvent, thirdUser, 9, "Third review");
+
+        mockMvc.perform(get("/api/reviews/event/" + testEvent.getId())
+                        .param("page", "1")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.content[0].comment", is("Third review")))
+                .andExpect(jsonPath("$.totalElements", is(3)))
+                .andExpect(jsonPath("$.totalPages", is(2)))
+                .andExpect(jsonPath("$.size", is(2)))
+                .andExpect(jsonPath("$.number", is(1)));
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no reviews exist")
+    void shouldReturnNotFoundWhenNoReviewsExist() throws Exception {
+        mockMvc.perform(get("/api/reviews/event/" + testEvent.getId()))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -260,5 +312,38 @@ public class ReviewIntegrationTest {
                 .andExpect(jsonPath("$.eventName", is(testEvent.getName())))
                 .andExpect(jsonPath("$.totalReviews", is(2)))
                 .andExpect(jsonPath("$.averageRating", is(8.0)));
+    }
+
+    @Test
+    @DisplayName("Should sort reviews by rating in descending order")
+    void shouldSortReviewsByRatingDesc() throws Exception {
+        createAndSaveReview(testEvent, testUser, 5, "Average");
+        User anotherUser = createAndSaveUser("another@user.com", "987654321");
+        createAndSaveReview(testEvent, anotherUser, 10, "Excellent");
+        User thirdUser = createAndSaveUser("third@user.com", "555555555");
+        createAndSaveReview(testEvent, thirdUser, 3, "Poor");
+
+        mockMvc.perform(get("/api/reviews/event/" + testEvent.getId())
+                        .param("sort", "rating,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].rating", is(10)))
+                .andExpect(jsonPath("$.content[1].rating", is(5)))
+                .andExpect(jsonPath("$.content[2].rating", is(3)));
+    }
+
+    @Test
+    @DisplayName("Should handle pagination with single review")
+    void shouldHandlePaginationWithSingleReview() throws Exception {
+        createAndSaveReview(testEvent, testUser, 8, "Only review");
+
+        mockMvc.perform(get("/api/reviews/event/" + testEvent.getId())
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.first", is(true)))
+                .andExpect(jsonPath("$.last", is(true)));
     }
 }

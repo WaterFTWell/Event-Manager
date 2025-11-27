@@ -2,6 +2,7 @@ package com.example.Event_Manager.unit.event;
 
 import com.example.Event_Manager.models._util.RequestEmptyException;
 import com.example.Event_Manager.models.category.Category;
+import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.models.category.exceptions.InvalidCategoryException;
 import com.example.Event_Manager.models.category.repository.CategoryRepository;
 import com.example.Event_Manager.models.category.validation.CategoryValidation;
@@ -9,7 +10,6 @@ import com.example.Event_Manager.models.event.Event;
 import com.example.Event_Manager.models.event.dto.request.CreateEventDTO;
 import com.example.Event_Manager.models.event.dto.response.EventDTO;
 import com.example.Event_Manager.models.event.enums.Status;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
 import com.example.Event_Manager.models.event.mapper.EventMapper;
 import com.example.Event_Manager.models.event.repository.EventRepository;
 import com.example.Event_Manager.models.event.validation.EventValidation;
@@ -192,14 +192,14 @@ public class CreateEventTest {
     }
 
     @Test
-    @DisplayName("Should throw EventNotFoundException when category is not found")
-    void createEvent_CategoryNotFound_ThrowsEventNotFoundException() {
+    @DisplayName("Should throw CategoryNotFoundException when category is not found")
+    void createEvent_CategoryNotFound_ThrowsCategoryNotFoundException() {
         // Given
         doNothing().when(eventValidation).checkIfRequestNotNull(any(CreateEventDTO.class));
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             eventService.createEvent(validCreateEventDTO);
         });
 
@@ -221,7 +221,7 @@ public class CreateEventTest {
         when(venueRepository.findById(1L)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
+        VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
             eventService.createEvent(validCreateEventDTO);
         });
 
@@ -250,7 +250,7 @@ public class CreateEventTest {
         when(categoryRepository.findById(-1L)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             eventService.createEvent(invalidDTO);
         });
 
@@ -278,7 +278,7 @@ public class CreateEventTest {
         when(venueRepository.findById(-1L)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
+        VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
             eventService.createEvent(invalidDTO);
         });
 

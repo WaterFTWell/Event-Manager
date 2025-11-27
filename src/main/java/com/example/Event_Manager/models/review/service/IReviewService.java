@@ -4,13 +4,13 @@ import com.example.Event_Manager.models.review.dto.request.CreateReviewDTO;
 import com.example.Event_Manager.models.review.dto.request.UpdateReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.models.review.dto.response.ReviewSummaryDTO;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface IReviewService {
     ReviewDTO createReview(CreateReviewDTO review, Long userId);
     ReviewDTO updateReview(Long reviewId, UpdateReviewDTO review, Long userId);
     void deleteReview(Long reviewId, Long userId);
-    List<ReviewDTO> getReviewsForEvent(Long eventId);
+    Page<ReviewDTO> getReviewsForEvent(Long eventId, Pageable pageable);
     ReviewSummaryDTO getEventReviewSummary(Long eventId);
 }

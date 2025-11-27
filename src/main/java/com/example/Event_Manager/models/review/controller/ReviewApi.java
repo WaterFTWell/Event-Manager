@@ -10,10 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.List;
 
 @Validated
 @Tag(name = "Review Management", description = "APIs for managing event reviews")
@@ -58,13 +58,14 @@ public interface ReviewApi {
     );
 
     @Operation(summary = "Get all reviews for an event",
-                description = "Retrieves all reviews associated with a specific event.")
+                description = "Retrieves all paginated reviews associated with a specific event.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Reviews retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "Event not found")
     })
-     ResponseEntity<List<ReviewDTO>> getReviewsForEvent(
-             Long eventId
+     ResponseEntity<Page<ReviewDTO>> getReviewsForEvent(
+             Long eventId,
+             Pageable pageable
     );
 
     @Operation(summary = "Get review summary for an event",

@@ -8,10 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-
-import java.util.List;
 
 @Validated
 @Tag(name = "Category Management", description = "APIs for managing categories")
@@ -21,7 +21,7 @@ public interface CategoryApi {
             description = "Creates a new category for events.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Category created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "400", description = "Request is empty or contains invalid data"),
             @ApiResponse(responseCode = "409", description = "Category with this name already exists")
     })
     ResponseEntity<CategoryDTO> createCategory(@Valid CreateCategoryDTO createCategoryDTO);
@@ -30,6 +30,7 @@ public interface CategoryApi {
             description = "Updates a category's details by its ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Category updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID or request is empty"),
             @ApiResponse(responseCode = "404", description = "Category not found"),
             @ApiResponse(responseCode = "409", description = "Another category with this name already exists")
     })
@@ -39,6 +40,7 @@ public interface CategoryApi {
             description = "Deletes a category by its ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Category deleted successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID provided"),
             @ApiResponse(responseCode = "404", description = "Category not found")
     })
     ResponseEntity<Void> deleteCategory(Long id);
@@ -47,12 +49,16 @@ public interface CategoryApi {
             description = "Retrieves a category by its ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Category found"),
-            @ApiResponse(responseCode = "404", description = "Category not found")
+            @ApiResponse(responseCode = "400", description = "Invalid ID provided"),
+            @ApiResponse(responseCode = "404", description = "Category not found or does not exist")
     })
     ResponseEntity<CategoryDTO> getCategoryById(Long id);
 
     @Operation(summary = "Get all categories",
-            description = "Retrieves a list of all categories.")
-    @ApiResponse(responseCode = "200", description = "Categories retrieved successfully")
-    ResponseEntity<List<CategoryDTO>> getAllCategories();
+            description = "Retrieves all paginated categories.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Categories retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "No categories found in database")
+    })
+    ResponseEntity<Page<CategoryDTO>> getAllCategories(Pageable pageable);
 }

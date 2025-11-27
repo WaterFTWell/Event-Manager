@@ -6,7 +6,6 @@ import com.example.Event_Manager.models._util.RequestEmptyException;
 import org.springframework.stereotype.Component;
 
 
-//TODO:: zrobic implementacje validacji jak bede robil serwis do eventow
 @Component
 public class EventValidation implements BaseValidation {
 
@@ -20,7 +19,7 @@ public class EventValidation implements BaseValidation {
     @Override
     public void checkIfIdValid(Long id) {
         if(id == null || id <= 0) {
-            throw new EventNotFoundException("Event with this id is not in database.");
+            throw new EventNotFoundException("Event ID is not valid.");
         }
     }
 

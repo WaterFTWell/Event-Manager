@@ -1,5 +1,6 @@
 package com.example.Event_Manager.unit.review;
 
+import com.example.Event_Manager.auth.repository.UserRepository;
 import com.example.Event_Manager.models._util.RequestEmptyException;
 import com.example.Event_Manager.models.event.Event;
 import com.example.Event_Manager.models.review.Review;
@@ -11,6 +12,8 @@ import com.example.Event_Manager.models.review.repository.ReviewRepository;
 import com.example.Event_Manager.models.review.service.ReviewService;
 import com.example.Event_Manager.models.review.validation.ReviewValidation;
 import com.example.Event_Manager.models.user.User;
+import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.models.user.validation.UserValidation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,10 +35,16 @@ public class UpdateReviewTest {
     private ReviewRepository reviewRepository;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private ReviewMapper reviewMapper;
 
     @Mock
     private ReviewValidation reviewValidation;
+
+    @Mock
+    private UserValidation userValidation;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -72,12 +81,15 @@ public class UpdateReviewTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(), userId, user.getFullName(), 9, "Updated comment!", createdAt);
+        ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(),
+                userId, user.getFullName(), 9, "Updated comment!", createdAt);
 
         doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
         doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        doNothing().when(userValidation).checkIfObjectExist(user);
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(existingReview));
-        doNothing().when(reviewValidation).checkIfObjectExist(existingReview);
         doNothing().when(reviewMapper).updateEntity(existingReview, updateDTO);
         when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
         when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
@@ -93,8 +105,10 @@ public class UpdateReviewTest {
 
         verify(reviewValidation).checkIfRequestNotNull(updateDTO);
         verify(reviewValidation).checkIfIdValid(reviewId);
+        verify(userValidation).checkIfIdValid(userId);
+        verify(userRepository).findById(userId);
+        verify(userValidation).checkIfObjectExist(user);
         verify(reviewRepository).getReviewById(reviewId);
-        verify(reviewValidation).checkIfObjectExist(existingReview);
         verify(reviewMapper).updateEntity(existingReview, updateDTO);
         verify(reviewRepository).save(existingReview);
         verify(reviewMapper).toDTO(updatedReview);
@@ -107,9 +121,13 @@ public class UpdateReviewTest {
         Long nonExistentReviewId = 99L;
         Long userId = 10L;
         UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
+        User user = User.builder().id(userId).firstName("Jan").lastName("Kowalski").build();
 
         doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
         doNothing().when(reviewValidation).checkIfIdValid(nonExistentReviewId);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        doNothing().when(userValidation).checkIfObjectExist(user);
         when(reviewRepository.getReviewById(nonExistentReviewId)).thenReturn(Optional.empty());
 
         // When & Then
@@ -119,6 +137,12 @@ public class UpdateReviewTest {
 
         assertEquals("Review not found", exception.getMessage());
 
+        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
+        verify(reviewValidation).checkIfIdValid(nonExistentReviewId);
+        verify(userValidation).checkIfIdValid(userId);
+        verify(userRepository).findById(userId);
+        verify(userValidation).checkIfObjectExist(user);
+        verify(reviewRepository).getReviewById(nonExistentReviewId);
         verify(reviewRepository, never()).save(any(Review.class));
         verify(reviewMapper, never()).updateEntity(any(Review.class), any(UpdateReviewDTO.class));
     }
@@ -141,6 +165,9 @@ public class UpdateReviewTest {
 
         assertEquals("Request cannot be null.", exception.getMessage());
 
+        verify(reviewValidation).checkIfRequestNotNull(nullDto);
+        verify(reviewValidation, never()).checkIfIdValid(anyLong());
+        verify(userRepository, never()).findById(anyLong());
         verify(reviewRepository, never()).getReviewById(anyLong());
         verify(reviewRepository, never()).save(any(Review.class));
     }
@@ -164,6 +191,116 @@ public class UpdateReviewTest {
 
         assertEquals("ID must be greater than 0.", exception.getMessage());
 
+        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
+        verify(reviewValidation).checkIfIdValid(invalidReviewId);
+        verify(userValidation, never()).checkIfIdValid(anyLong());
         verify(reviewRepository, never()).getReviewById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Should throw exception for invalid user ID")
+    void updateReview_shouldThrowException_whenUserIdIsInvalid() {
+        // Given
+        Long reviewId = 1L;
+        Long invalidUserId = -5L;
+        UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
+
+        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
+        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doThrow(new UserNotFoundException("ID must be greater than 0."))
+                .when(userValidation).checkIfIdValid(invalidUserId);
+
+        // When & Then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            reviewService.updateReview(reviewId, updateDTO, invalidUserId);
+        });
+
+        assertEquals("ID must be greater than 0.", exception.getMessage());
+
+        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
+        verify(reviewValidation).checkIfIdValid(reviewId);
+        verify(userValidation).checkIfIdValid(invalidUserId);
+        verify(userRepository, never()).findById(anyLong());
+        verify(reviewRepository, never()).getReviewById(anyLong());
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when user does not exist")
+    void updateReview_shouldThrowException_whenUserNotFound() {
+        // Given
+        Long reviewId = 1L;
+        Long nonExistentUserId = 999L;
+        UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
+
+        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
+        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doNothing().when(userValidation).checkIfIdValid(nonExistentUserId);
+        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
+
+        // When & Then
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            reviewService.updateReview(reviewId, updateDTO, nonExistentUserId);
+        });
+
+        assertEquals("User not found", exception.getMessage());
+
+        verify(reviewValidation).checkIfRequestNotNull(updateDTO);
+        verify(reviewValidation).checkIfIdValid(reviewId);
+        verify(userValidation).checkIfIdValid(nonExistentUserId);
+        verify(userRepository).findById(nonExistentUserId);
+        verify(reviewRepository, never()).getReviewById(anyLong());
+        verify(reviewRepository, never()).save(any(Review.class));
+    }
+
+    @Test
+    @DisplayName("Should update only rating when comment is null")
+    void updateReview_shouldSucceed_whenOnlyRatingIsUpdated() {
+        // Given
+        Long reviewId = 1L;
+        Long userId = 10L;
+        UpdateReviewDTO updateDTO = new UpdateReviewDTO(null, 10, null);
+
+        User user = User.builder().id(userId).firstName("Anna").lastName("Nowak").build();
+        Event event = Event.builder().id(1L).name("Event").build();
+
+        Review existingReview = Review.builder()
+                .id(reviewId)
+                .user(user)
+                .event(event)
+                .rating(5)
+                .comment("Original comment")
+                .build();
+
+        Review updatedReview = Review.builder()
+                .id(reviewId)
+                .user(user)
+                .event(event)
+                .rating(10)
+                .comment("Original comment")
+                .build();
+
+        ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(),
+                userId, user.getFullName(), 10, "Original comment", null);
+
+        doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO);
+        doNothing().when(reviewValidation).checkIfIdValid(reviewId);
+        doNothing().when(userValidation).checkIfIdValid(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        doNothing().when(userValidation).checkIfObjectExist(user);
+        when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(existingReview));
+        doNothing().when(reviewMapper).updateEntity(existingReview, updateDTO);
+        when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
+        when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
+
+        // When
+        ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, userId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(10, result.rating());
+        assertEquals("Original comment", result.comment());
+
+        verify(reviewMapper).updateEntity(existingReview, updateDTO);
+        verify(reviewRepository).save(existingReview);
     }
 }

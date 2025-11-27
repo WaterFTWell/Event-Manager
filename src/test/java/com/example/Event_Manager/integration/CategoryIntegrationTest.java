@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -127,17 +126,111 @@ public class CategoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return a list of all categories")
-    void shouldGetAllCategories() throws Exception {
+    @DisplayName("Should return a paginated list of all categories with default pagination")
+    void shouldGetAllCategoriesPaginated() throws Exception {
         createAndSaveCategory("Biznes", "Konferencje i spotkania biznesowe");
         createAndSaveCategory("Edukacja", "Warsztaty i kursy");
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/categories"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].name", is("Biznes")))
-                .andExpect(jsonPath("$[1].name", is("Edukacja")));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()", is(2)))
+                .andExpect(jsonPath("$.content[0].name", is("Biznes")))
+                .andExpect(jsonPath("$.content[1].name", is("Edukacja")))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.size", is(10)))
+                .andExpect(jsonPath("$.number", is(0)));
+    }
+
+    @Test
+    @DisplayName("Should return paginated categories with custom page size")
+    void shouldGetCategoriesWithCustomPageSize() throws Exception {
+        createAndSaveCategory("Biznes", "Konferencje");
+        createAndSaveCategory("Edukacja", "Warsztaty");
+        createAndSaveCategory("Sport", "Wydarzenia sportowe");
+        createAndSaveCategory("Kultura", "Wydarzenia kulturalne");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(2)))
+                .andExpect(jsonPath("$.totalElements", is(4)))
+                .andExpect(jsonPath("$.totalPages", is(2)))
+                .andExpect(jsonPath("$.size", is(2)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.first", is(true)))
+                .andExpect(jsonPath("$.last", is(false)));
+    }
+
+    @Test
+    @DisplayName("Should return second page of categories")
+    void shouldGetSecondPageOfCategories() throws Exception {
+        createAndSaveCategory("Kategoria 1", "Opis 1");
+        createAndSaveCategory("Kategoria 2", "Opis 2");
+        createAndSaveCategory("Kategoria 3", "Opis 3");
+        createAndSaveCategory("Kategoria 4", "Opis 4");
+        createAndSaveCategory("Kategoria 5", "Opis 5");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("page", "1")
+                        .param("size", "3"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(2)))
+                .andExpect(jsonPath("$.totalElements", is(5)))
+                .andExpect(jsonPath("$.totalPages", is(2)))
+                .andExpect(jsonPath("$.size", is(3)))
+                .andExpect(jsonPath("$.number", is(1)))
+                .andExpect(jsonPath("$.first", is(false)))
+                .andExpect(jsonPath("$.last", is(true)));
+    }
+
+    @Test
+    @DisplayName("Should sort categories by name in ascending order")
+    void shouldSortCategoriesByNameAsc() throws Exception {
+        createAndSaveCategory("Zdrowie", "Wydarzenia zdrowotne");
+        createAndSaveCategory("Biznes", "Wydarzenia biznesowe");
+        createAndSaveCategory("Edukacja", "Wydarzenia edukacyjne");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("sort", "name,asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name", is("Biznes")))
+                .andExpect(jsonPath("$.content[1].name", is("Edukacja")))
+                .andExpect(jsonPath("$.content[2].name", is("Zdrowie")));
+    }
+
+    @Test
+    @DisplayName("Should sort categories by name in descending order")
+    void shouldSortCategoriesByNameDesc() throws Exception {
+        createAndSaveCategory("Zdrowie", "Wydarzenia zdrowotne");
+        createAndSaveCategory("Biznes", "Wydarzenia biznesowe");
+        createAndSaveCategory("Edukacja", "Wydarzenia edukacyjne");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("sort", "name,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name", is("Zdrowie")))
+                .andExpect(jsonPath("$.content[1].name", is("Edukacja")))
+                .andExpect(jsonPath("$.content[2].name", is("Biznes")));
+    }
+
+    @Test
+    @DisplayName("Should handle pagination with single category")
+    void shouldHandlePaginationWithSingleCategory() throws Exception {
+        createAndSaveCategory("Jedyna", "Jedyna kategoria");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.totalElements", is(1)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.first", is(true)))
+                .andExpect(jsonPath("$.last", is(true)));
     }
 
     @Test
@@ -151,6 +244,18 @@ public class CategoryIntegrationTest {
     @DisplayName("Should return 404 Not Found when getting all categories and none exist")
     void shouldReturnNotFoundWhenNoCategoriesExist() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/categories"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return empty last page when requesting page beyond available data")
+    void shouldReturnNotFoundWhenRequestingPageBeyondData() throws Exception {
+        createAndSaveCategory("Kategoria 1", "Opis 1");
+        createAndSaveCategory("Kategoria 2", "Opis 2");
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
+                        .param("page", "5")
+                        .param("size", "10"))
                 .andExpect(status().isNotFound());
     }
 }

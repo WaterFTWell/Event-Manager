@@ -1,8 +1,10 @@
 package com.example.Event_Manager.unit.category;
 
+import com.example.Event_Manager.models._util.RequestEmptyException;
 import com.example.Event_Manager.models.category.Category;
 import com.example.Event_Manager.models.category.dto.request.UpdateCategoryDTO;
 import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
+import com.example.Event_Manager.models.category.exceptions.CategoryAlreadyExistsException;
 import com.example.Event_Manager.models.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.models.category.mapper.CategoryMapper;
 import com.example.Event_Manager.models.category.repository.CategoryRepository;
@@ -54,10 +56,13 @@ public class UpdateCategoryTest {
         // Given
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO("Nowa Nazwa", "Nowy opis");
-        Category updatedCategory = Category.builder().id(categoryId).name(updateDTO.name()).description(updateDTO.description()).build();
+        Category updatedCategory = Category.builder()
+                .id(categoryId)
+                .name(updateDTO.name())
+                .description(updateDTO.description())
+                .build();
         CategoryDTO expectedDTO = new CategoryDTO(categoryId, updateDTO.name(), updateDTO.description());
 
-        // Mocking behavior
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
         when(categoryRepository.findCategoryByName(updateDTO.name())).thenReturn(Optional.empty());
         when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
@@ -72,9 +77,11 @@ public class UpdateCategoryTest {
 
         verify(categoryValidation).checkIfIdValid(categoryId);
         verify(categoryValidation).checkIfRequestNotNull(updateDTO);
-        verify(categoryValidation).checkIfNameUniqueForUpdate(null, categoryId);
+        verify(categoryRepository).findById(categoryId);
+        verify(categoryRepository).findCategoryByName(updateDTO.name());
         verify(categoryMapper).updateEntity(existingCategory, updateDTO);
         verify(categoryRepository).save(existingCategory);
+        verify(categoryMapper).toDTO(updatedCategory);
     }
 
     @Test
@@ -83,7 +90,11 @@ public class UpdateCategoryTest {
         // Given
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(existingCategory.getName(), "Zaktualizowany opis");
-        Category updatedCategory = Category.builder().id(categoryId).name(existingCategory.getName()).description(updateDTO.description()).build();
+        Category updatedCategory = Category.builder()
+                .id(categoryId)
+                .name(existingCategory.getName())
+                .description(updateDTO.description())
+                .build();
         CategoryDTO expectedDTO = new CategoryDTO(categoryId, existingCategory.getName(), updateDTO.description());
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
@@ -98,11 +109,13 @@ public class UpdateCategoryTest {
         assertNotNull(result);
         assertEquals(expectedDTO, result);
 
-        // Verify that the uniqueness check is performed correctly
-        verify(categoryValidation).checkIfNameUniqueForUpdate(existingCategory, categoryId);
+        verify(categoryValidation).checkIfIdValid(categoryId);
+        verify(categoryValidation).checkIfRequestNotNull(updateDTO);
+        verify(categoryRepository).findById(categoryId);
+        verify(categoryRepository).findCategoryByName(updateDTO.name());
         verify(categoryRepository).save(existingCategory);
+        verify(categoryMapper).toDTO(updatedCategory);
     }
-
 
     @Test
     @DisplayName("Should throw CategoryNotFoundException when trying to update non-existent category")
@@ -118,61 +131,76 @@ public class UpdateCategoryTest {
         });
 
         assertEquals("Category with this id is not in database.", exception.getMessage());
+        verify(categoryValidation).checkIfIdValid(nonExistentId);
+        verify(categoryValidation).checkIfRequestNotNull(updateDTO);
+        verify(categoryRepository).findById(nonExistentId);
         verify(categoryRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should throw CategoryNameAlreadyExistsException when new name is taken by another category")
+    @DisplayName("Should throw CategoryAlreadyExistsException when new name is taken by another category")
     void updateCategory_shouldThrowException_whenNameIsTakenByAnotherCategory() {
         // Given
         Long categoryIdToUpdate = 1L;
         String newName = "Zajęta Nazwa";
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(newName, "Opis");
-        Category otherCategory = Category.builder().id(2L).name(newName).build();
+        Category otherCategory = Category.builder()
+                .id(2L)
+                .name(newName)
+                .build();
 
         when(categoryRepository.findById(categoryIdToUpdate)).thenReturn(Optional.of(existingCategory));
         when(categoryRepository.findCategoryByName(newName)).thenReturn(Optional.of(otherCategory));
-        doThrow(new CategoryNotFoundException("Category with this name already exists."))
-                .when(categoryValidation).checkIfNameUniqueForUpdate(otherCategory, categoryIdToUpdate);
-
 
         // When & Then
-        assertThrows(CategoryNotFoundException.class, () -> {
+        CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () -> {
             categoryService.updateCategory(categoryIdToUpdate, updateDTO);
         });
 
+        assertEquals("Category with this name already exists.", exception.getMessage());
+        verify(categoryValidation).checkIfIdValid(categoryIdToUpdate);
+        verify(categoryValidation).checkIfRequestNotNull(updateDTO);
+        verify(categoryRepository).findById(categoryIdToUpdate);
+        verify(categoryRepository).findCategoryByName(newName);
         verify(categoryRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException for a non-positive ID")
+    @DisplayName("Should throw CategoryNotFoundException for a non-positive ID")
     void updateCategory_shouldThrowException_whenIdIsInvalid() {
         // Given
         Long invalidId = -1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO("Nazwa", "Opis");
-        doThrow(new IllegalArgumentException("ID must be positive.")).when(categoryValidation).checkIfIdValid(invalidId);
+        doThrow(new CategoryNotFoundException("ID must be positive."))
+                .when(categoryValidation).checkIfIdValid(invalidId);
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             categoryService.updateCategory(invalidId, updateDTO);
         });
 
+        assertEquals("ID must be positive.", exception.getMessage());
+        verify(categoryValidation).checkIfIdValid(invalidId);
         verify(categoryRepository, never()).findById(any());
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException for a null DTO")
+    @DisplayName("Should throw RequestEmptyException for a null DTO")
     void updateCategory_shouldThrowException_whenDtoIsNull() {
         // Given
         Long validId = 1L;
         UpdateCategoryDTO nullDto = null;
-        doThrow(new IllegalArgumentException("Request cannot be null.")).when(categoryValidation).checkIfRequestNotNull(nullDto);
+        doThrow(new RequestEmptyException("Request cannot be null."))
+                .when(categoryValidation).checkIfRequestNotNull(nullDto);
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
+        RequestEmptyException exception = assertThrows(RequestEmptyException.class, () -> {
             categoryService.updateCategory(validId, nullDto);
         });
 
+        assertEquals("Request cannot be null.", exception.getMessage());
+        verify(categoryValidation).checkIfIdValid(validId);
+        verify(categoryValidation).checkIfRequestNotNull(nullDto);
         verify(categoryRepository, never()).findById(any());
     }
 }

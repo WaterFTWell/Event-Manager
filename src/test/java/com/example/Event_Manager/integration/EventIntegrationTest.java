@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+import static org.hamcrest.Matchers.hasSize;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations = "classpath:application-integration.properties")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -166,18 +168,83 @@ public class EventIntegrationTest {
     }
 
     @Test
-    void shouldGetAllEvents() throws Exception {
-        CreateEventDTO createEventDTO = getSampleEventDTO("Event1");
-        String json = objectMapper.writeValueAsString(createEventDTO);
+    void shouldGetAllEventsWithPagination() throws Exception {
+        for (int i = 1; i <= 3; i++) {
+            CreateEventDTO createEventDTO = getSampleEventDTO("Event" + i);
+            String json = objectMapper.writeValueAsString(createEventDTO);
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                            .header("Authorization", "Bearer " + organizerToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+        // 1strona
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalPages").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.number").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.first").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.last").value(false));
+
+        // 2strona
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
+                        .param("page", "1")
+                        .param("size", "2"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.number").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.first").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.last").value(true));
+    }
+
+    @Test
+    void shouldGetAllEventsWithSorting() throws Exception {
+        CreateEventDTO event1 = getSampleEventDTO("Zebra Event");
+        CreateEventDTO event2 = getSampleEventDTO("Apple Event");
+        CreateEventDTO event3 = getSampleEventDTO("Banana Event");
+
         mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
                         .header("Authorization", "Bearer " + organizerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(objectMapper.writeValueAsString(event1)))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/events"))
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                        .header("Authorization", "Bearer " + organizerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event2)))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                        .header("Authorization", "Bearer " + organizerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event3)))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "name,asc"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Event1"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("Apple Event"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].name").value("Banana Event"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].name").value("Zebra Event"));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "name,desc"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("Zebra Event"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[1].name").value("Banana Event"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[2].name").value("Apple Event"));
     }
 
     @Test
@@ -187,63 +254,118 @@ public class EventIntegrationTest {
     }
 
     @Test
-    void shouldGetEventsByCategory() throws Exception {
-        CreateEventDTO createEventDTO = getSampleEventDTO("Category Event");
-        String json = objectMapper.writeValueAsString(createEventDTO);
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
-                        .header("Authorization", "Bearer " + organizerToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/category/" + categoryId))
+    void shouldGetEventsByCategoryWithPagination() throws Exception {
+        for (int i = 1; i <= 3; i++) {
+            CreateEventDTO createEventDTO = getSampleEventDTO("Category Event " + i);
+            String json = objectMapper.writeValueAsString(createEventDTO);
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                            .header("Authorization", "Bearer " + organizerToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/category/" + categoryId)
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Category Event"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].category.id").value(categoryId));
     }
 
     @Test
-    void shouldGetEventsByVenue() throws Exception {
-        CreateEventDTO createEventDTO = getSampleEventDTO("Venue Event");
-        String json = objectMapper.writeValueAsString(createEventDTO);
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
-                        .header("Authorization", "Bearer " + organizerToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/venue/" + venueId))
+    void shouldGetEventsByVenueWithPagination() throws Exception {
+        for (int i = 1; i <= 3; i++) {
+            CreateEventDTO createEventDTO = getSampleEventDTO("Venue Event " + i);
+            String json = objectMapper.writeValueAsString(createEventDTO);
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                            .header("Authorization", "Bearer " + organizerToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/venue/" + venueId)
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].venue.id").value(venueId));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].venue.id").value(venueId));
     }
 
     @Test
-    void shouldGetEventsByDateRange() throws Exception {
-        CreateEventDTO createEventDTO = getSampleEventDTO("DateRange Event");
-        String json = objectMapper.writeValueAsString(createEventDTO);
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
-                        .header("Authorization", "Bearer " + organizerToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
+    void shouldGetEventsByDateRangeWithPagination() throws Exception {
+        for (int i = 1; i <= 3; i++) {
+            CreateEventDTO createEventDTO = getSampleEventDTO("DateRange Event " + i);
+            String json = objectMapper.writeValueAsString(createEventDTO);
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                            .header("Authorization", "Bearer " + organizerToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+
         LocalDateTime start = LocalDateTime.now().plusDays(1);
         LocalDateTime end = LocalDateTime.now().plusDays(3);
         mockMvc.perform(MockMvcRequestBuilders.get("/api/events/date-range")
                         .param("start", start.toString())
-                        .param("end", end.toString()))
+                        .param("end", end.toString())
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("DateRange Event"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(3));
     }
 
     @Test
-    void shouldSearchEventsByName() throws Exception {
-        CreateEventDTO createEventDTO = getSampleEventDTO("Searchable Event");
+    void shouldSearchEventsByNameWithPagination() throws Exception {
+        for (int i = 1; i <= 3; i++) {
+            CreateEventDTO createEventDTO = getSampleEventDTO("Searchable Event " + i);
+            String json = objectMapper.writeValueAsString(createEventDTO);
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
+                            .header("Authorization", "Bearer " + organizerToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/search")
+                        .param("name", "Searchable")
+                        .param("page", "0")
+                        .param("size", "2"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content", hasSize(2)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(3));
+    }
+
+    @Test
+    void shouldUseDefaultPaginationParameters() throws Exception {
+        CreateEventDTO createEventDTO = getSampleEventDTO("Default Pagination Event");
         String json = objectMapper.writeValueAsString(createEventDTO);
         mockMvc.perform(MockMvcRequestBuilders.post("/api/events")
                         .header("Authorization", "Bearer " + organizerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/search")
-                        .param("name", "Searchable"))
+        // default podejscie
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name").value("Searchable Event"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.number").value(0));
+    }
+
+    @Test
+    void shouldReturnEmptyPageWhenNoEventsMatch() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/events/search")
+                        .param("name", "NonExistentEvent")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 }
