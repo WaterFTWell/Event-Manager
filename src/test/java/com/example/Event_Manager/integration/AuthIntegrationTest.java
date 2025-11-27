@@ -54,7 +54,7 @@ public class AuthIntegrationTest {
                 .firstName("Jan")
                 .lastName("Janowski")
                 .email("jan@test.com")
-                .phoneNumber("1234567890")
+                .phoneNumber("123456789")
                 .password("password123")
                 .role(Role.ATTENDEE)
                 .build();
