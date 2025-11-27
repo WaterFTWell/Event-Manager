@@ -99,9 +99,8 @@ public class GetEventsTest {
         pageable = PageRequest.of(0, 10);
 
         country = Country.builder()
-                .id(1L)
-                .name("Polska")
                 .code("PL")
+                .name("Polska")
                 .build();
 
         city = City.builder()

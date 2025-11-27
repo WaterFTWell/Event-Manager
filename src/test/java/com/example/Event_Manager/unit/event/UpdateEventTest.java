@@ -5,7 +5,9 @@ import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
 import com.example.Event_Manager.models.category.repository.CategoryRepository;
 import com.example.Event_Manager.models.category.validation.CategoryValidation;
 import com.example.Event_Manager.models.city.City;
+import com.example.Event_Manager.models.city.dto.response.CityDTO;
 import com.example.Event_Manager.models.country.Country;
+import com.example.Event_Manager.models.country.dto.response.CountryDTO;
 import com.example.Event_Manager.models.event.Event;
 import com.example.Event_Manager.models.event.dto.request.UpdateEventDTO;
 import com.example.Event_Manager.models.event.dto.response.EventDTO;
@@ -70,6 +72,7 @@ public class UpdateEventTest {
     private EventDTO eventDTO;
     private EventDTO updatedEventDTO;
     private UpdateEventDTO updateEventDTO;
+    private CityDTO cityDTO;
     private User organizer;
     private Category category;
     private Category newCategory;
@@ -78,14 +81,12 @@ public class UpdateEventTest {
     private Country country;
     private City city;
     private LocalDateTime futureDate;
-    private LocalDateTime newFutureDate;
 
     @BeforeEach
     void setUp() {
         country = Country.builder()
-                .id(1L)
-                .name("Polska")
                 .code("PL")
+                .name("Polska")
                 .build();
 
         city = City.builder()
@@ -133,7 +134,7 @@ public class UpdateEventTest {
                 .build();
 
         futureDate = LocalDateTime.now().plusDays(7);
-        newFutureDate = LocalDateTime.now().plusDays(14);
+        LocalDateTime newFutureDate = LocalDateTime.now().plusDays(14);
 
         event = Event.builder()
                 .id(1L)
@@ -180,18 +181,26 @@ public class UpdateEventTest {
                 "Wydarzenia sportowe"
         );
 
+        cityDTO = new CityDTO(
+                1L,
+                "Warszawa",
+                new CountryDTO("PL", "Polska")
+        );
+
         var venueDTO = new VenueDTO(
                 1L,
                 "Główna Sala Koncertowa",
                 "Ulica Marszałkowska 123",
-                "Duża sala koncertowa"
+                "Duża sala koncertowa",
+                cityDTO
         );
 
         var newVenueDTO = new VenueDTO(
                 2L,
                 "Stadion Narodowy",
                 "Ulica Poniatowskiego 1",
-                "Wielki stadion"
+                "Wielki stadion",
+                cityDTO
         );
 
         eventDTO = new EventDTO(
@@ -274,7 +283,7 @@ public class UpdateEventTest {
                 .build();
 
         var categoryDTO = new CategoryDTO(1L, "Muzyka", "Wydarzenia muzyczne");
-        var venueDTO = new VenueDTO(1L, "Główna Sala Koncertowa", "Ulica Marszałkowska 123", "Duża sala koncertowa");
+        var venueDTO = new VenueDTO(1L, "Główna Sala Koncertowa", "Ulica Marszałkowska 123", "Duża sala koncertowa", cityDTO);
         EventDTO partiallyUpdatedDTO = new EventDTO(
                 1L, "Nowa nazwa", "Nowy opis",
                 Status.PUBLISHED, futureDate, categoryDTO, venueDTO, organizer.getId()

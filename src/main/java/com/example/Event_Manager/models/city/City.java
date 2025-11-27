@@ -22,12 +22,12 @@ public class City {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // teoretycznie nie powinny byc takie same miasta xd
-    @Column(nullable = false, unique = true)
+    // City names may not be unique. e.g. Paris, France and Paris, TX
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id", nullable = false)
+    @JoinColumn(name = "country_code", referencedColumnName = "code", nullable = false)
     private Country country;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "city", cascade = CascadeType.ALL)
