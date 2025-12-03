@@ -19,8 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -112,9 +110,10 @@ public class AuthServiceTest {
                 .role(Role.ATTENDEE)
                 .build();
 
-        //mockujemy dzialanie uwierzytelnienia
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
-        when(userDetailsService.loadUserByUsername(request.getEmail())).thenReturn(mock(UserDetails.class));
+        org.springframework.security.core.Authentication authentication = mock(org.springframework.security.core.Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+
         when(jwtUtil.generateToken(any())).thenReturn("token_jwt");
 
         //When
