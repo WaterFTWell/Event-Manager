@@ -1,12 +1,12 @@
 package com.example.Event_Manager.integration;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.dto.request.ChangePasswordRequest;
-import com.example.Event_Manager.models.user.dto.request.UpdateUserDTO;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.enums.Status;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.dto.request.ChangePasswordRequest;
+import com.example.Event_Manager.user.dto.request.UpdateUserDTO;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.enums.Status;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

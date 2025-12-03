@@ -1,15 +1,15 @@
 package com.example.Event_Manager.unit.city;
 
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.dto.request.CreateCityDTO;
-import com.example.Event_Manager.models.city.dto.response.CityDTO;
-import com.example.Event_Manager.models.city.mapper.CityMapper;
-import com.example.Event_Manager.models.city.repository.CityRepository;
-import com.example.Event_Manager.models.city.service.CityService;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
-import com.example.Event_Manager.models.country.exceptions.CountryNotFoundException;
-import com.example.Event_Manager.models.country.repository.CountryRepository;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.city.dto.request.CreateCityDTO;
+import com.example.Event_Manager.city.dto.response.CityDTO;
+import com.example.Event_Manager.city.mapper.CityMapper;
+import com.example.Event_Manager.city.repository.CityRepository;
+import com.example.Event_Manager.city.service.CityService;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
+import com.example.Event_Manager.country.exceptions.CountryNotFoundException;
+import com.example.Event_Manager.country.repository.CountryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

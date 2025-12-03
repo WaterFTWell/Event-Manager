@@ -1,10 +1,10 @@
 package com.example.Event_Manager.unit.country;
 
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
-import com.example.Event_Manager.models.country.mapper.CountryMapper;
-import com.example.Event_Manager.models.country.repository.CountryRepository;
-import com.example.Event_Manager.models.country.service.CountryService;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
+import com.example.Event_Manager.country.mapper.CountryMapper;
+import com.example.Event_Manager.country.repository.CountryRepository;
+import com.example.Event_Manager.country.service.CountryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.example.Event_Manager.auth.service;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

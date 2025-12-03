@@ -1,15 +1,14 @@
 package com.example.Event_Manager.unit.interested;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.interested.Interested;
-import com.example.Event_Manager.models.interested.dto.response.InterestedDTO;
-import com.example.Event_Manager.models.interested.repository.InterestedRepository;
-import com.example.Event_Manager.models.interested.service.InterestedService;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.exceptions.EventNotFoundException;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.interested.Interested;
+import com.example.Event_Manager.interested.dto.response.InterestedDTO;
+import com.example.Event_Manager.interested.repository.InterestedRepository;
+import com.example.Event_Manager.interested.service.InterestedService;
+import com.example.Event_Manager.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,8 +40,7 @@ public class InterestedServiceTest {
     private EventRepository eventRepository;
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private UserValidation userValidation;
+
 
     @InjectMocks
     private InterestedService interestedService;
@@ -55,7 +53,6 @@ public class InterestedServiceTest {
         Long eventId = 100L;
         User user = User.builder().id(userId).build();
         Event event = Event.builder().id(eventId).build();
-        doNothing().when(userValidation).checkIfIdValid(userId);
         // mockujemy ze nie ma jeszcze lajka w bazie
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -76,7 +73,6 @@ public class InterestedServiceTest {
         Long userId = 1L;
         Long eventId = 100L;
         Interested existingInterest = new Interested();
-        doNothing().when(userValidation).checkIfIdValid(userId);
         // mockujemy ze lajk juz jest
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.of(existingInterest));
 
@@ -100,7 +96,6 @@ public class InterestedServiceTest {
                 .event(event)
                 .markedAt(now)
                 .build();
-        doNothing().when(userValidation).checkIfIdValid(userId);
         Page<Interested> page = new PageImpl<>(List.of(interested));
 
         when(userRepository.existsById(userId)).thenReturn(true); //serwis sprawdza czy user istnieje
@@ -110,7 +105,7 @@ public class InterestedServiceTest {
         //Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        assertEquals("Fajny Event", result.getContent().get(0).eventName());
+        assertEquals("Fajny Event", result.getContent().getFirst().eventName());
     }
 
     @Test
@@ -119,8 +114,6 @@ public class InterestedServiceTest {
         //Given
         Long userId = 1L;
         Long eventId = 999L;
-
-        doNothing().when(userValidation).checkIfIdValid(userId);
 
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).build()));
@@ -138,7 +131,6 @@ public class InterestedServiceTest {
         //given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.existsById(userId)).thenReturn(true);
         when(interestedRepository.findAllByUserId(userId, pageable)).thenReturn(Page.empty());
 

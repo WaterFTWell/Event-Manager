@@ -1,13 +1,13 @@
 package com.example.Event_Manager.unit.city;
 
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.dto.response.CityDTO;
-import com.example.Event_Manager.models.city.exceptions.CityNotFoundException;
-import com.example.Event_Manager.models.city.mapper.CityMapper;
-import com.example.Event_Manager.models.city.repository.CityRepository;
-import com.example.Event_Manager.models.city.service.CityService;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.city.dto.response.CityDTO;
+import com.example.Event_Manager.city.exceptions.CityNotFoundException;
+import com.example.Event_Manager.city.mapper.CityMapper;
+import com.example.Event_Manager.city.repository.CityRepository;
+import com.example.Event_Manager.city.service.CityService;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

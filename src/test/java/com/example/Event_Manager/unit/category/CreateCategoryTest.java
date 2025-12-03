@@ -1,19 +1,20 @@
 package com.example.Event_Manager.unit.category;
 
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.dto.request.CreateCategoryDTO;
-import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.models.category.exceptions.CategoryAlreadyExistsException;
-import com.example.Event_Manager.models.category.mapper.CategoryMapper;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
-import com.example.Event_Manager.models.category.service.CategoryService;
-import com.example.Event_Manager.models.category.validation.CategoryValidation;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.dto.request.CreateCategoryDTO;
+import com.example.Event_Manager.category.dto.response.CategoryDTO;
+import com.example.Event_Manager.category.exceptions.CategoryAlreadyExistsException;
+import com.example.Event_Manager.category.mapper.CategoryMapper;
+import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.category.service.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,9 +29,6 @@ public class CreateCategoryTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-    @Mock
-    private CategoryValidation categoryValidation;
-
     @InjectMocks
     private CategoryService categoryService;
 
@@ -43,9 +41,7 @@ public class CreateCategoryTest {
         Category savedCategory = Category.builder().id(1L).name(createDTO.name()).description(createDTO.description()).build();
         CategoryDTO expectedDTO = new CategoryDTO(1L, createDTO.name(), createDTO.description());
 
-        // Symulacja działania mocków
-        doNothing().when(categoryValidation).checkIfRequestNotNull(createDTO);
-        doNothing().when(categoryValidation).checkIfNameUnique(createDTO.name());
+        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.empty());
         when(categoryMapper.toEntity(createDTO)).thenReturn(categoryToSave);
         when(categoryRepository.save(categoryToSave)).thenReturn(savedCategory);
         when(categoryMapper.toDTO(savedCategory)).thenReturn(expectedDTO);
@@ -59,8 +55,7 @@ public class CreateCategoryTest {
         assertEquals(expectedDTO.name(), result.name());
 
         // Weryfikacja interakcji
-        verify(categoryValidation).checkIfRequestNotNull(createDTO);
-        verify(categoryValidation).checkIfNameUnique(createDTO.name());
+        verify(categoryRepository).findCategoryByName(createDTO.name());
         verify(categoryRepository).save(categoryToSave);
         verify(categoryMapper).toDTO(savedCategory);
     }
@@ -70,55 +65,17 @@ public class CreateCategoryTest {
     void createCategory_shouldThrowException_whenNameIsDuplicate() {
         // Given
         CreateCategoryDTO createDTO = new CreateCategoryDTO("Sport", "Wydarzenia sportowe.");
-        doNothing().when(categoryValidation).checkIfRequestNotNull(createDTO);
-        doThrow(new CategoryAlreadyExistsException("Category with this name already exists."))
-                .when(categoryValidation).checkIfNameUnique(createDTO.name());
+        Category existingCategory = Category.builder().id(1L).name(createDTO.name()).description(createDTO.description()).build();
+
+        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.ofNullable(existingCategory));
 
         // When & Then
-        CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () -> {
-            categoryService.createCategory(createDTO);
-        }, "Powinien zostać rzucony wyjątek o istniejącej nazwie kategorii.");
+        CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () -> categoryService.createCategory(createDTO), "Powinien zostać rzucony wyjątek o istniejącej nazwie kategorii.");
 
         assertEquals("Category with this name already exists.", exception.getMessage());
 
         verify(categoryRepository, never()).save(any(Category.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when request DTO is null")
-    void createCategory_shouldThrowException_whenDtoIsNull() {
-        // Given
-        CreateCategoryDTO nullDto = null;
-        doThrow(new IllegalArgumentException("Request cannot be null."))
-                .when(categoryValidation).checkIfRequestNotNull(nullDto);
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            categoryService.createCategory(nullDto);
-        });
-
-        assertEquals("Request cannot be null.", exception.getMessage());
-
-        verify(categoryRepository, never()).save(any());
-        verify(categoryMapper, never()).toEntity(any());
-    }
-
-    @Test
-    @DisplayName("Should throw exception for blank category name")
-    void createCategory_shouldThrowException_whenNameIsBlank() {
-        // Given
-        CreateCategoryDTO createDTO = new CreateCategoryDTO("   ", "Opis z pustą nazwą.");
-        doNothing().when(categoryValidation).checkIfRequestNotNull(createDTO);
-        doThrow(new IllegalArgumentException("Category name cannot be blank."))
-                .when(categoryValidation).checkIfNameUnique(createDTO.name());
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            categoryService.createCategory(createDTO);
-        });
-
-        assertEquals("Category name cannot be blank.", exception.getMessage());
-        verify(categoryRepository, never()).save(any());
+        verify(categoryRepository).findCategoryByName(createDTO.name());
     }
 
     @Test
@@ -127,12 +84,14 @@ public class CreateCategoryTest {
         // Given
         String longDescription = "a".repeat(500);
         CreateCategoryDTO createDTO = new CreateCategoryDTO("Długi Opis", longDescription);
-        Category category = Category.builder().id(1L).name("Długi Opis").description(longDescription).build();
+        Category categoryToSave = Category.builder().name(createDTO.name()).description(createDTO.description()).build();
+        Category savedCategory = Category.builder().id(1L).name("Długi Opis").description(longDescription).build();
         CategoryDTO expectedDTO = new CategoryDTO(1L, "Długi Opis", longDescription);
 
-        when(categoryMapper.toEntity(any())).thenReturn(category);
-        when(categoryRepository.save(any())).thenReturn(category);
-        when(categoryMapper.toDTO(any())).thenReturn(expectedDTO);
+        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.empty());
+        when(categoryMapper.toEntity(createDTO)).thenReturn(categoryToSave);
+        when(categoryRepository.save(categoryToSave)).thenReturn(savedCategory);
+        when(categoryMapper.toDTO(savedCategory)).thenReturn(expectedDTO);
 
         // When
         CategoryDTO result = categoryService.createCategory(createDTO);

@@ -1,16 +1,16 @@
 package com.example.Event_Manager.unit.review;
 
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.event.validation.EventValidation;
-import com.example.Event_Manager.models.review.Review;
-import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
-import com.example.Event_Manager.models.review.exceptions.ReviewsNotFoundException;
-import com.example.Event_Manager.models.review.mapper.ReviewMapper;
-import com.example.Event_Manager.models.review.repository.ReviewRepository;
-import com.example.Event_Manager.models.review.service.ReviewService;
-import com.example.Event_Manager.models.user.User;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.review.Review;
+import com.example.Event_Manager.review.dto.response.ReviewDTO;
+import com.example.Event_Manager.review.exceptions.ReviewsNotFoundException;
+import com.example.Event_Manager.review.mapper.ReviewMapper;
+import com.example.Event_Manager.review.repository.ReviewRepository;
+import com.example.Event_Manager.review.service.ReviewService;
+import com.example.Event_Manager.review.validation.ReviewValidation;
+import com.example.Event_Manager.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +25,6 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -39,6 +38,9 @@ public class GetReviewsTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private ReviewValidation reviewValidation;
 
     @Mock
     private ReviewMapper reviewMapper;
@@ -85,12 +87,13 @@ public class GetReviewsTest {
         ReviewDTO reviewDTO2 = new ReviewDTO(102L, eventId, "Koncert", 1L,
                 "Doktor Makaljer", 7, "Dobry.", now.minusHours(1));
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(eventValidation).checkIfObjectExist(event);
+        // doNothing().when(eventValidation).checkIfIdValid(eventId); // USUNIĘTE
+        // when(eventRepository.findById(eventId)).thenReturn(Optional.of(event)); // USUNIĘTE
+        // doNothing().when(eventValidation).checkIfObjectExist(event); // USUNIĘTE
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(reviewPage);
         when(reviewMapper.toDTO(review1)).thenReturn(reviewDTO1);
         when(reviewMapper.toDTO(review2)).thenReturn(reviewDTO2);
+        doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
         // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
@@ -103,12 +106,9 @@ public class GetReviewsTest {
         assertEquals(reviewDTO2.rating(), result.getContent().get(1).rating());
         assertEquals(0, result.getNumber());
         assertEquals(10, result.getSize());
-
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(eventValidation).checkIfObjectExist(event);
         verify(reviewRepository).findByEventId(eventId, pageable);
         verify(reviewMapper, times(2)).toDTO(any(Review.class));
+        verify(reviewValidation).checkIfReviewsEmpty(reviewPage);
     }
 
     @Test
@@ -137,11 +137,9 @@ public class GetReviewsTest {
         ReviewDTO reviewDTO = new ReviewDTO(106L, eventId, "Koncert", 1L,
                 "Doktor Makaljer", 9, "Świetny!", now);
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(eventValidation).checkIfObjectExist(event);
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(reviewPage);
         when(reviewMapper.toDTO(review)).thenReturn(reviewDTO);
+        doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
         // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
@@ -155,10 +153,8 @@ public class GetReviewsTest {
         assertFalse(result.hasNext());
         assertTrue(result.hasPrevious());
 
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(eventValidation).checkIfObjectExist(event);
         verify(reviewRepository).findByEventId(eventId, pageable);
+        verify(reviewValidation).checkIfReviewsEmpty(reviewPage);
     }
 
     @Test
@@ -170,10 +166,9 @@ public class GetReviewsTest {
         Event event = Event.builder().id(eventId).name("Empty Event").build();
         Page<Review> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(eventValidation).checkIfObjectExist(event);
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(emptyPage);
+        doThrow(new ReviewsNotFoundException("No reviews found for event with id: " + eventId))
+                .when(reviewValidation).checkIfReviewsEmpty(emptyPage);
 
         // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> {
@@ -182,10 +177,8 @@ public class GetReviewsTest {
 
         assertEquals("No reviews found for event with id: " + eventId, exception.getMessage());
 
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(eventValidation).checkIfObjectExist(event);
         verify(reviewRepository).findByEventId(eventId, pageable);
+        verify(reviewValidation).checkIfReviewsEmpty(emptyPage);
         verify(reviewMapper, never()).toDTO(any(Review.class));
     }
 
@@ -195,12 +188,10 @@ public class GetReviewsTest {
         // Given
         Long eventId = 3L;
         Pageable pageable = PageRequest.of(0, 10);
-        Event event = Event.builder().id(eventId).name("Null Event").build();
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(eventValidation).checkIfObjectExist(event);
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(null);
+        doThrow(new ReviewsNotFoundException("No reviews found for event with id: " + eventId))
+                .when(reviewValidation).checkIfReviewsEmpty(null);
 
         // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> {
@@ -209,55 +200,10 @@ public class GetReviewsTest {
 
         assertEquals("No reviews found for event with id: " + eventId, exception.getMessage());
 
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(eventValidation).checkIfObjectExist(event);
         verify(reviewRepository).findByEventId(eventId, pageable);
+        verify(reviewValidation).checkIfReviewsEmpty(null);
     }
 
-    @Test
-    @DisplayName("Should throw EventNotFoundException for invalid event ID")
-    void getReviewsForEvent_shouldThrowException_forInvalidEventId() {
-        // Given
-        Long invalidEventId = 0L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        doThrow(new EventNotFoundException("ID must be greater than 0."))
-                .when(eventValidation).checkIfIdValid(invalidEventId);
-
-        // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            reviewService.getReviewsForEvent(invalidEventId, pageable);
-        });
-
-        assertEquals("ID must be greater than 0.", exception.getMessage());
-
-        verify(eventValidation).checkIfIdValid(invalidEventId);
-        verify(eventRepository, never()).findById(anyLong());
-        verify(reviewRepository, never()).findByEventId(anyLong(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("Should throw EventNotFoundException when event is not found")
-    void getReviewsForEvent_shouldThrowException_whenEventNotFound() {
-        // Given
-        Long eventId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
-
-        // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            reviewService.getReviewsForEvent(eventId, pageable);
-        });
-
-        assertEquals("Event not found", exception.getMessage());
-
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(reviewRepository, never()).findByEventId(anyLong(), any(Pageable.class));
-    }
 
     @Test
     @DisplayName("Should handle single review on page")
@@ -284,11 +230,9 @@ public class GetReviewsTest {
         ReviewDTO reviewDTO = new ReviewDTO(201L, eventId, "Wystawa", 2L,
                 "Anna Kowalska", 10, "Fenomenalne!", now);
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(eventValidation).checkIfObjectExist(event);
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(reviewPage);
         when(reviewMapper.toDTO(review)).thenReturn(reviewDTO);
+        doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
         // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
@@ -301,10 +245,8 @@ public class GetReviewsTest {
         assertFalse(result.hasNext());
         assertFalse(result.hasPrevious());
 
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findById(eventId);
-        verify(eventValidation).checkIfObjectExist(event);
         verify(reviewRepository).findByEventId(eventId, pageable);
         verify(reviewMapper).toDTO(review);
+        verify(reviewValidation).checkIfReviewsEmpty(reviewPage);
     }
 }

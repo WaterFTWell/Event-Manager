@@ -1,12 +1,11 @@
 package com.example.Event_Manager.unit.venue;
 
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.repository.CityRepository;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.venue.Venue;
-import com.example.Event_Manager.models.venue.exceptions.VenueNotFoundException;
-import com.example.Event_Manager.models.venue.repository.VenueRepository;
-import com.example.Event_Manager.models.venue.service.VenueService;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.venue.Venue;
+import com.example.Event_Manager.venue.exceptions.VenueNotFoundException;
+import com.example.Event_Manager.venue.repository.VenueRepository;
+import com.example.Event_Manager.venue.service.VenueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,12 +1,12 @@
 package com.example.Event_Manager.unit.country;
 
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.request.UpdateCountryDTO;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
-import com.example.Event_Manager.models.country.exceptions.CountryNotFoundException;
-import com.example.Event_Manager.models.country.mapper.CountryMapper;
-import com.example.Event_Manager.models.country.repository.CountryRepository;
-import com.example.Event_Manager.models.country.service.CountryService;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.request.UpdateCountryDTO;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
+import com.example.Event_Manager.country.exceptions.CountryNotFoundException;
+import com.example.Event_Manager.country.mapper.CountryMapper;
+import com.example.Event_Manager.country.repository.CountryRepository;
+import com.example.Event_Manager.country.service.CountryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

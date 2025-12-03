@@ -1,16 +1,16 @@
 package com.example.Event_Manager.integration;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
+import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.auth.util.JwtUtil;
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
-import com.example.Event_Manager.models.event.dto.request.CreateEventDTO;
-import com.example.Event_Manager.models.event.dto.request.UpdateEventDTO;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.user.enums.Status;
-import com.example.Event_Manager.models.venue.Venue;
-import com.example.Event_Manager.models.venue.repository.VenueRepository;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.event.dto.request.CreateEventDTO;
+import com.example.Event_Manager.event.dto.request.UpdateEventDTO;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.enums.Status;
+import com.example.Event_Manager.venue.Venue;
+import com.example.Event_Manager.venue.repository.VenueRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

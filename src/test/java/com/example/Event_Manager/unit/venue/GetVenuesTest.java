@@ -1,15 +1,14 @@
 package com.example.Event_Manager.unit.venue;
 
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.dto.response.CityDTO;
-import com.example.Event_Manager.models.city.repository.CityRepository;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
-import com.example.Event_Manager.models.venue.Venue;
-import com.example.Event_Manager.models.venue.dto.response.VenueDTO;
-import com.example.Event_Manager.models.venue.mapper.VenueMapper;
-import com.example.Event_Manager.models.venue.repository.VenueRepository;
-import com.example.Event_Manager.models.venue.service.VenueService;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.city.dto.response.CityDTO;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
+import com.example.Event_Manager.venue.Venue;
+import com.example.Event_Manager.venue.dto.response.VenueDTO;
+import com.example.Event_Manager.venue.mapper.VenueMapper;
+import com.example.Event_Manager.venue.repository.VenueRepository;
+import com.example.Event_Manager.venue.service.VenueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

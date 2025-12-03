@@ -1,21 +1,18 @@
 package com.example.Event_Manager.unit.review;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.event.validation.EventValidation;
-import com.example.Event_Manager.models.review.Review;
-import com.example.Event_Manager.models.review.dto.request.CreateReviewDTO;
-import com.example.Event_Manager.models.review.dto.response.ReviewDTO;
-import com.example.Event_Manager.models.review.mapper.ReviewMapper;
-import com.example.Event_Manager.models.review.repository.ReviewRepository;
-import com.example.Event_Manager.models.review.service.ReviewService;
-import com.example.Event_Manager.models.review.validation.ReviewValidation;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.validation.UserValidation;
-import com.example.Event_Manager.models.venue.validation.VenueValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.exceptions.EventNotFoundException;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.review.Review;
+import com.example.Event_Manager.review.dto.request.CreateReviewDTO;
+import com.example.Event_Manager.review.dto.response.ReviewDTO;
+import com.example.Event_Manager.review.mapper.ReviewMapper;
+import com.example.Event_Manager.review.repository.ReviewRepository;
+import com.example.Event_Manager.review.service.ReviewService;
+import com.example.Event_Manager.review.validation.ReviewValidation;
+import com.example.Event_Manager.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,12 +38,6 @@ public class CreateReviewTest {
 
     @Mock
     private ReviewValidation reviewValidation;
-
-    @Mock
-    private UserValidation userValidation;
-
-    @Mock
-    private VenueValidation venueValidation;
 
     @Mock
     private EventValidation eventValidation;
@@ -80,13 +71,12 @@ public class CreateReviewTest {
                 "Jan Kowalski", 5, "Amazing event!", now);
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(reviewMapper.toEntity(createDTO, event, user)).thenReturn(reviewToSave);
         when(reviewRepository.save(reviewToSave)).thenReturn(savedReview);
         when(reviewMapper.toDTO(savedReview)).thenReturn(expectedDTO);
 
         // When
-        ReviewDTO result = reviewService.createReview(createDTO, userId);
+        ReviewDTO result = reviewService.createReview(createDTO, user);
 
         // Then
         assertNotNull(result, "Returned DTO should not be null.");
@@ -96,9 +86,7 @@ public class CreateReviewTest {
         assertEquals(expectedDTO.eventId(), result.eventId());
         assertEquals(expectedDTO.createdAt(), result.createdAt());
 
-
         verify(eventRepository).findById(eventId);
-        verify(userRepository).findById(userId);
         verify(reviewRepository).save(reviewToSave);
         verify(reviewMapper).toDTO(savedReview);
     }
@@ -111,40 +99,17 @@ public class CreateReviewTest {
         Long nonExistentEventId = 99L;
         Long categoryId = 1L;
         CreateReviewDTO createDTO = new CreateReviewDTO(nonExistentEventId, categoryId, 5, "This should fail.");
-
+        User user = User.builder().id(userId).firstName("Jan").lastName("Kowalski").build();
         when(eventRepository.findById(nonExistentEventId)).thenReturn(Optional.empty());
 
         // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            reviewService.createReview(createDTO, userId);
+            reviewService.createReview(createDTO, user);
         }, "Should throw EventNotFoundException.");
 
         assertEquals("Event not found", exception.getMessage());
 
-        verify(userRepository, never()).findById(anyLong());
-        verify(reviewRepository, never()).save(any(Review.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when user does not exist")
-    void createReview_shouldThrowException_whenUserNotFound() {
-        // Given
-        Long nonExistentUserId = 99L;
-        Long eventId = 1L;
-        Long categoryId = 1L;
-        CreateReviewDTO createDTO = new CreateReviewDTO(eventId, categoryId, 5, "This should also fail.");
-        Event event = Event.builder().id(eventId).name("Some Event").build();
-
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        when(userRepository.findById(nonExistentUserId)).thenReturn(Optional.empty());
-
-        // When & Then
-        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            reviewService.createReview(createDTO, nonExistentUserId);
-        }, "Should throw UserNotFoundException.");
-
-        assertEquals("User not found", exception.getMessage());
-
+        verify(eventRepository).findById(nonExistentEventId);
         verify(reviewRepository, never()).save(any(Review.class));
     }
 
@@ -164,13 +129,12 @@ public class CreateReviewTest {
         ReviewDTO expectedDTO = new ReviewDTO(2L, eventId, "Festival", userId, "Anna Nowak", 4, null, now);
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(reviewMapper.toEntity(createDTO, event, user)).thenReturn(reviewToSave);
         when(reviewRepository.save(reviewToSave)).thenReturn(savedReview);
         when(reviewMapper.toDTO(savedReview)).thenReturn(expectedDTO);
 
         // When
-        ReviewDTO result = reviewService.createReview(createDTO, userId);
+        ReviewDTO result = reviewService.createReview(createDTO, user);
 
         // Then
         assertNotNull(result, "Returned DTO should not be null.");

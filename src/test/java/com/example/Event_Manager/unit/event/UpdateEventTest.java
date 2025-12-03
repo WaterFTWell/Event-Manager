@@ -1,28 +1,28 @@
 package com.example.Event_Manager.unit.event;
 
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.models.category.repository.CategoryRepository;
-import com.example.Event_Manager.models.category.validation.CategoryValidation;
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.city.dto.response.CityDTO;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.country.dto.response.CountryDTO;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.dto.request.UpdateEventDTO;
-import com.example.Event_Manager.models.event.dto.response.EventDTO;
-import com.example.Event_Manager.models.event.enums.Status;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
-import com.example.Event_Manager.models.event.mapper.EventMapper;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.event.service.EventService;
-import com.example.Event_Manager.models.event.validation.EventValidation;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.venue.Venue;
-import com.example.Event_Manager.models.venue.dto.response.VenueDTO;
-import com.example.Event_Manager.models.venue.repository.VenueRepository;
-import com.example.Event_Manager.models.venue.validation.VenueValidation;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.category.dto.response.CategoryDTO;
+import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
+import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.city.dto.response.CityDTO;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.country.dto.response.CountryDTO;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.dto.request.UpdateEventDTO;
+import com.example.Event_Manager.event.dto.response.EventDTO;
+import com.example.Event_Manager.event.enums.Status;
+import com.example.Event_Manager.event.exceptions.EventNotFoundException;
+import com.example.Event_Manager.event.mapper.EventMapper;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.event.service.EventService;
+import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.venue.Venue;
+import com.example.Event_Manager.venue.dto.response.VenueDTO;
+import com.example.Event_Manager.venue.exceptions.VenueNotFoundException;
+import com.example.Event_Manager.venue.repository.VenueRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,14 +55,9 @@ public class UpdateEventTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @Mock
-    private CategoryValidation categoryValidation;
 
     @Mock
     private VenueRepository venueRepository;
-
-    @Mock
-    private VenueValidation venueValidation;
 
     @InjectMocks
     private EventService eventService;
@@ -230,12 +225,9 @@ public class UpdateEventTest {
     void updateEvent_Success_ReturnsUpdatedEventDTO() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(categoryValidation).checkIfObjectExist(newCategory);
-        when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.of(newCategory));
-        doNothing().when(venueValidation).checkIfObjectExist(newVenue);
         when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
+        when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.of(newCategory));
+        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(updatedEvent);
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
 
@@ -247,12 +239,9 @@ public class UpdateEventTest {
         assertEquals(updatedEventDTO.id(), result.id());
         assertEquals(updatedEventDTO.name(), result.name());
         assertEquals(updatedEventDTO.description(), result.description());
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findEventById(eventId);
-        verify(categoryValidation).checkIfObjectExist(newCategory);
-        verify(categoryRepository).findById(updateEventDTO.categoryId());
-        verify(venueValidation).checkIfObjectExist(newVenue);
         verify(venueRepository).findById(updateEventDTO.venueId());
+        verify(categoryRepository).findById(updateEventDTO.categoryId());
+        verify(eventRepository).findEventById(eventId);
         verify(eventRepository).save(any(Event.class));
         verify(eventMapper).toDTO(updatedEvent);
     }
@@ -288,15 +277,12 @@ public class UpdateEventTest {
                 1L, "Nowa nazwa", "Nowy opis",
                 Status.PUBLISHED, futureDate, categoryDTO, venueDTO, organizer.getId()
         );
-
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
+        when(venueRepository.findById(partialUpdate.venueId())).thenReturn(Optional.of(venue));
+        when(categoryRepository.findById(partialUpdate.categoryId())).thenReturn(Optional.of(category));
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(partiallyUpdatedEvent);
         when(eventMapper.toDTO(partiallyUpdatedEvent)).thenReturn(partiallyUpdatedDTO);
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
-        doNothing().when(categoryValidation).checkIfObjectExist(category);
-        doNothing().when(venueValidation).checkIfObjectExist(venue);
+
 
         // When
         EventDTO result = eventService.updateEvent(eventId, partialUpdate);
@@ -305,12 +291,11 @@ public class UpdateEventTest {
         assertNotNull(result);
         assertEquals("Nowa nazwa", result.name());
         assertEquals("Nowy opis", result.description());
-        verify(eventValidation).checkIfIdValid(eventId);
+        verify(venueRepository).findById(partialUpdate.venueId());
+        verify(categoryRepository).findById(partialUpdate.categoryId());
         verify(eventRepository).findEventById(eventId);
         verify(eventRepository).save(any(Event.class));
         verify(eventMapper).toDTO(partiallyUpdatedEvent);
-        verify(categoryValidation).checkIfObjectExist(category);
-        verify(venueValidation).checkIfObjectExist(venue);
     }
 
     @Test
@@ -326,26 +311,22 @@ public class UpdateEventTest {
                 2L
         );
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(categoryValidation).checkIfObjectExist(newCategory);
+        when(venueRepository.findById(categoryUpdate.venueId())).thenReturn(Optional.of(venue));
         when(categoryRepository.findById(2L)).thenReturn(Optional.of(newCategory));
+        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(updatedEvent);
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
-        doNothing().when(venueValidation).checkIfObjectExist(venue);
+
 
         // When
         EventDTO result = eventService.updateEvent(eventId, categoryUpdate);
 
         // Then
         assertNotNull(result);
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findEventById(eventId);
-        verify(categoryValidation).checkIfObjectExist(newCategory);
+        verify(venueRepository).findById(categoryUpdate.venueId());
         verify(categoryRepository).findById(2L);
+        verify(eventRepository).findEventById(eventId);
         verify(eventRepository).save(any(Event.class));
-        verify(venueValidation).checkIfObjectExist(venue);
     }
 
     @Test
@@ -361,77 +342,75 @@ public class UpdateEventTest {
                 1L
         );
 
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
-        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
-        doNothing().when(venueValidation).checkIfObjectExist(newVenue);
         when(venueRepository.findById(2L)).thenReturn(Optional.of(newVenue));
+        when(categoryRepository.findById(venueUpdate.categoryId())).thenReturn(Optional.of(category));
+        when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(updatedEvent);
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        doNothing().when(categoryValidation).checkIfObjectExist(category);
+
 
         // When
         EventDTO result = eventService.updateEvent(eventId, venueUpdate);
 
         // Then
         assertNotNull(result);
-        verify(eventValidation).checkIfIdValid(eventId);
-        verify(eventRepository).findEventById(eventId);
-        verify(venueValidation).checkIfObjectExist(newVenue);
         verify(venueRepository).findById(2L);
+        verify(categoryRepository).findById(venueUpdate.categoryId());
+        verify(eventRepository).findEventById(eventId);
         verify(eventRepository).save(any(Event.class));
-        verify(categoryValidation).checkIfObjectExist(category);
-    }
-
-    @Test
-    void updateEvent_NullEventId_ThrowsException() {
-        // Given
-        doThrow(new EventNotFoundException("Event with this id is not in database.")).when(eventValidation).checkIfIdValid(null);
-
-        // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            eventService.updateEvent(null, updateEventDTO);
-        });
-
-        assertEquals("Event with this id is not in database.", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(null);
-        verifyNoInteractions(eventRepository);
-        verifyNoInteractions(categoryValidation);
-        verifyNoInteractions(venueValidation);
-    }
-
-    @Test
-    void updateEvent_NegativeEventId_ThrowsException() {
-        // Given
-        Long invalidEventId = -1L;
-        doThrow(new EventNotFoundException("Event with this id is not in database.")).when(eventValidation).checkIfIdValid(invalidEventId);
-
-        // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            eventService.updateEvent(invalidEventId, updateEventDTO);
-        });
-
-        assertEquals("Event with this id is not in database.", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(invalidEventId);
-        verifyNoInteractions(eventRepository);
     }
 
     @Test
     void updateEvent_EventNotFound_ThrowsException() {
         // Given
         Long notExistingId = 999L;
-        doNothing().when(eventValidation).checkIfIdValid(notExistingId);
+        when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
+        when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.of(newCategory));
         when(eventRepository.findEventById(notExistingId)).thenReturn(Optional.empty());
 
         // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             eventService.updateEvent(notExistingId, updateEventDTO);
         });
+
         assertEquals("Event with this id is not in database.", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(notExistingId);
+        verify(venueRepository).findById(updateEventDTO.venueId());
+        verify(categoryRepository).findById(updateEventDTO.categoryId());
         verify(eventRepository).findEventById(notExistingId);
-        verifyNoInteractions(categoryValidation);
-        verifyNoInteractions(venueValidation);
     }
 
+    @Test
+    void updateEvent_VenueNotFound_ThrowsException() {
+        // Given
+        Long eventId = 1L;
+        when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(VenueNotFoundException.class, () -> {
+            eventService.updateEvent(eventId, updateEventDTO);
+        });
+
+        verify(venueRepository).findById(updateEventDTO.venueId());
+        verify(categoryRepository, never()).findById(any());
+        verify(eventRepository, never()).findEventById(any());
+        verify(eventRepository, never()).save(any());
+    }
+
+    @Test
+    void updateEvent_CategoryNotFound_ThrowsException() {
+        // Given
+        Long eventId = 1L;
+        when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
+        when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(CategoryNotFoundException.class, () -> {
+            eventService.updateEvent(eventId, updateEventDTO);
+        });
+
+        verify(venueRepository).findById(updateEventDTO.venueId());
+        verify(categoryRepository).findById(updateEventDTO.categoryId());
+        verify(eventRepository, never()).findEventById(any());
+        verify(eventRepository, never()).save(any());
+    }
 }

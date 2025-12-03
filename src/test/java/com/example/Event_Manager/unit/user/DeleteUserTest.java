@@ -1,9 +1,8 @@
 package com.example.Event_Manager.unit.user;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.service.UserService;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.user.exceptions.UserNotFoundException;
+import com.example.Event_Manager.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.*;
 public class DeleteUserTest {
 
     @Mock private UserRepository userRepository;
-    @Mock private UserValidation userValidation;
 
     @InjectMocks private UserService userService;
 
@@ -28,7 +26,6 @@ public class DeleteUserTest {
     void deleteUser_Success() {
         //Given
         Long userId = 1L;
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.existsById(userId)).thenReturn(true);
 
         //When
@@ -42,7 +39,6 @@ public class DeleteUserTest {
     void deleteUser_NotFound_ThrowsException() {
         //Given
         Long userId = 999L;
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.existsById(userId)).thenReturn(false);
 
         //Then

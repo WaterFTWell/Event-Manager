@@ -1,20 +1,19 @@
 package com.example.Event_Manager.unit.event;
 
-import com.example.Event_Manager.models.category.Category;
-import com.example.Event_Manager.models.city.City;
-import com.example.Event_Manager.models.country.Country;
-import com.example.Event_Manager.models.event.Event;
-import com.example.Event_Manager.models.event.dto.response.EventDTO;
-import com.example.Event_Manager.models.event.dto.response.EventSummaryDTO;
-import com.example.Event_Manager.models.event.enums.Status;
-import com.example.Event_Manager.models.event.exceptions.EventNotFoundException;
-import com.example.Event_Manager.models.event.mapper.EventMapper;
-import com.example.Event_Manager.models.event.repository.EventRepository;
-import com.example.Event_Manager.models.event.service.EventService;
-import com.example.Event_Manager.models.event.validation.EventValidation;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.enums.Role;
-import com.example.Event_Manager.models.venue.Venue;
+import com.example.Event_Manager.category.Category;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.country.Country;
+import com.example.Event_Manager.event.Event;
+import com.example.Event_Manager.event.dto.response.EventDTO;
+import com.example.Event_Manager.event.dto.response.EventSummaryDTO;
+import com.example.Event_Manager.event.enums.Status;
+import com.example.Event_Manager.event.exceptions.EventNotFoundException;
+import com.example.Event_Manager.event.mapper.EventMapper;
+import com.example.Event_Manager.event.repository.EventRepository;
+import com.example.Event_Manager.event.service.EventService;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.venue.Venue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,8 +40,8 @@ public class GetEventTest {
     @Mock
     private EventMapper eventMapper;
 
-    @Mock
-    private EventValidation eventValidation;
+//    @Mock
+//    private EventValidation eventValidation;
 
     @InjectMocks
     private EventService eventService;
@@ -126,13 +125,10 @@ public class GetEventTest {
         );
     }
 
-    // ==================== GET EVENT BY ID ====================
-
     @Test
     void getEventById_Success_ReturnsEventDTO() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
@@ -144,7 +140,6 @@ public class GetEventTest {
         assertEquals(eventDTO.id(), result.id());
         assertEquals(eventDTO.name(), result.name());
         assertEquals(eventDTO.description(), result.description());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper).toDTO(event);
     }
@@ -153,34 +148,13 @@ public class GetEventTest {
     void getEventById_EventNotFound_ThrowsException() {
         // Given
         Long eventId = 999L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            eventService.getEventById(eventId);
-        });
+        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> eventService.getEventById(eventId));
 
         assertNotNull(exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
-        verify(eventMapper, never()).toDTO(any());
-    }
-
-    @Test
-    void getEventById_NullId_ThrowsException() {
-        // Given
-        doThrow(new EventNotFoundException("Event with this id is not in database."))
-                .when(eventValidation).checkIfIdValid(null);
-
-        // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            eventService.getEventById(null);
-        });
-
-        assertEquals("Event with this id is not in database.", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(null);
-        verify(eventRepository, never()).findEventById(any());
         verify(eventMapper, never()).toDTO(any());
     }
 
@@ -188,16 +162,12 @@ public class GetEventTest {
     void getEventById_RepositoryThrowsException_PropagatesException() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenThrow(new RuntimeException("Database connection error"));
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            eventService.getEventById(eventId);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(eventId));
 
         assertEquals("Database connection error", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper, never()).toDTO(any());
     }
@@ -206,28 +176,21 @@ public class GetEventTest {
     void getEventById_MapperThrowsException_PropagatesException() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toDTO(event)).thenThrow(new RuntimeException("Mapping error"));
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            eventService.getEventById(eventId);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(eventId));
 
         assertEquals("Mapping error", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper).toDTO(event);
     }
-
-    // ==================== GET EVENT SUMMARY ====================
 
     @Test
     void getEventSummary_Success_ReturnsSummaryDTO() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toSummaryDTO(event)).thenReturn(eventSummaryDTO);
 
@@ -238,7 +201,6 @@ public class GetEventTest {
         assertNotNull(result);
         assertEquals(eventSummaryDTO.id(), result.id());
         assertEquals(eventSummaryDTO.name(), result.name());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper).toSummaryDTO(event);
     }
@@ -247,51 +209,26 @@ public class GetEventTest {
     void getEventSummary_EventNotFound_ThrowsException() {
         // Given
         Long eventId = 999L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.empty());
 
         // When & Then
-        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
-            eventService.getEventSummary(eventId);
-        });
+        EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> eventService.getEventSummary(eventId));
 
         assertNotNull(exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper, never()).toSummaryDTO(any());
-    }
-
-    @Test
-    void getEventSummary_ValidationFailsBeforeRepositoryAccess() {
-        // Given
-        Long eventId = -99L;
-        doThrow(new EventNotFoundException("Event with this id is not in database."))
-                .when(eventValidation).checkIfIdValid(eventId);
-
-        // When & Then
-        assertThrows(EventNotFoundException.class, () -> {
-            eventService.getEventSummary(eventId);
-        });
-
-        verify(eventValidation).checkIfIdValid(eventId);
-        verifyNoInteractions(eventRepository);
-        verifyNoInteractions(eventMapper);
     }
 
     @Test
     void getEventSummary_RepositoryThrowsException_PropagatesException() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenThrow(new RuntimeException("Database error"));
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            eventService.getEventSummary(eventId);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventSummary(eventId));
 
         assertEquals("Database error", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper, never()).toSummaryDTO(any());
     }
@@ -300,17 +237,13 @@ public class GetEventTest {
     void getEventSummary_MapperThrowsException_PropagatesException() {
         // Given
         Long eventId = 1L;
-        doNothing().when(eventValidation).checkIfIdValid(eventId);
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toSummaryDTO(event)).thenThrow(new RuntimeException("Summary mapping error"));
 
         // When & Then
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            eventService.getEventSummary(eventId);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventSummary(eventId));
 
         assertEquals("Summary mapping error", exception.getMessage());
-        verify(eventValidation).checkIfIdValid(eventId);
         verify(eventRepository).findEventById(eventId);
         verify(eventMapper).toSummaryDTO(event);
     }

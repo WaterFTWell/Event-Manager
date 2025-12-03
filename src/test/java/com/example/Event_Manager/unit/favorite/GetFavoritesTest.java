@@ -1,14 +1,13 @@
 package com.example.Event_Manager.unit.favorite;
 
-import com.example.Event_Manager.auth.repository.UserRepository;
-import com.example.Event_Manager.models.favorite.Favorite;
-import com.example.Event_Manager.models.favorite.dto.response.FavoriteDTO;
-import com.example.Event_Manager.models.favorite.mapper.FavoriteMapper;
-import com.example.Event_Manager.models.favorite.repository.FavoriteRepository;
-import com.example.Event_Manager.models.favorite.service.FavoriteService;
-import com.example.Event_Manager.models.user.User;
-import com.example.Event_Manager.models.user.exceptions.UserNotFoundException;
-import com.example.Event_Manager.models.user.validation.UserValidation;
+import com.example.Event_Manager.user.repository.UserRepository;
+import com.example.Event_Manager.favorite.Favorite;
+import com.example.Event_Manager.favorite.dto.response.FavoriteDTO;
+import com.example.Event_Manager.favorite.mapper.FavoriteMapper;
+import com.example.Event_Manager.favorite.repository.FavoriteRepository;
+import com.example.Event_Manager.favorite.service.FavoriteService;
+import com.example.Event_Manager.user.User;
+import com.example.Event_Manager.user.exceptions.UserNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +31,6 @@ public class GetFavoritesTest {
     @Mock private FavoriteRepository favoriteRepository;
     @Mock private UserRepository userRepository;
     @Mock private FavoriteMapper favoriteMapper;
-    @Mock private UserValidation userValidation;
 
     @InjectMocks private FavoriteService favoriteService;
 
@@ -48,7 +46,6 @@ public class GetFavoritesTest {
 
         Page<Favorite> favoritePage = new PageImpl<>(List.of(fav));
 
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.existsById(userId)).thenReturn(true);
         when(favoriteRepository.findAllByUserId(userId, pageable)).thenReturn(favoritePage);
         when(favoriteMapper.toDTO(fav)).thenReturn(dto);
@@ -69,7 +66,6 @@ public class GetFavoritesTest {
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
 
-        doNothing().when(userValidation).checkIfIdValid(userId);
         //User istnieje
         when(userRepository.existsById(userId)).thenReturn(true);
         //ale nie posiada ulubionych organizatorów
@@ -91,7 +87,6 @@ public class GetFavoritesTest {
         Long userId = 99L;
         Pageable pageable = PageRequest.of(0, 10);
 
-        doNothing().when(userValidation).checkIfIdValid(userId);
         when(userRepository.existsById(userId)).thenReturn(false); //User nie istnieje
 
         //When & Then

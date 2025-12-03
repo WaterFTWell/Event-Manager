@@ -1,6 +1,6 @@
 package com.example.Event_Manager.auth.dto.response;
 
-import com.example.Event_Manager.models.user.enums.Role;
+import com.example.Event_Manager.user.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
