@@ -223,7 +223,6 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_Success_ReturnsUpdatedEventDTO() {
-        // Given
         Long eventId = 1L;
         when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
         when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.of(newCategory));
@@ -231,10 +230,8 @@ public class UpdateEventTest {
         when(eventRepository.save(any(Event.class))).thenReturn(updatedEvent);
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
 
-        // When
         EventDTO result = eventService.updateEvent(eventId, updateEventDTO);
 
-        // Then
         assertNotNull(result);
         assertEquals(updatedEventDTO.id(), result.id());
         assertEquals(updatedEventDTO.name(), result.name());
@@ -248,7 +245,6 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_PartialUpdate_OnlyNameAndDescription_Success() {
-        // Given
         Long eventId = 1L;
         UpdateEventDTO partialUpdate = new UpdateEventDTO(
                 "Nowa nazwa",
@@ -284,10 +280,8 @@ public class UpdateEventTest {
         when(eventMapper.toDTO(partiallyUpdatedEvent)).thenReturn(partiallyUpdatedDTO);
 
 
-        // When
         EventDTO result = eventService.updateEvent(eventId, partialUpdate);
 
-        // Then
         assertNotNull(result);
         assertEquals("Nowa nazwa", result.name());
         assertEquals("Nowy opis", result.description());
@@ -300,7 +294,6 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_OnlyCategory_Success() {
-        // Given
         Long eventId = 1L;
         UpdateEventDTO categoryUpdate = new UpdateEventDTO(
                 null,
@@ -318,10 +311,8 @@ public class UpdateEventTest {
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
 
 
-        // When
         EventDTO result = eventService.updateEvent(eventId, categoryUpdate);
 
-        // Then
         assertNotNull(result);
         verify(venueRepository).findById(categoryUpdate.venueId());
         verify(categoryRepository).findById(2L);
@@ -331,7 +322,6 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_OnlyVenue_Success() {
-        // Given
         Long eventId = 1L;
         UpdateEventDTO venueUpdate = new UpdateEventDTO(
                 null,
@@ -349,10 +339,8 @@ public class UpdateEventTest {
         when(eventMapper.toDTO(updatedEvent)).thenReturn(updatedEventDTO);
 
 
-        // When
         EventDTO result = eventService.updateEvent(eventId, venueUpdate);
 
-        // Then
         assertNotNull(result);
         verify(venueRepository).findById(2L);
         verify(categoryRepository).findById(venueUpdate.categoryId());
@@ -362,13 +350,11 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_EventNotFound_ThrowsException() {
-        // Given
         Long notExistingId = 999L;
         when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
         when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.of(newCategory));
         when(eventRepository.findEventById(notExistingId)).thenReturn(Optional.empty());
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             eventService.updateEvent(notExistingId, updateEventDTO);
         });
@@ -381,11 +367,9 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_VenueNotFound_ThrowsException() {
-        // Given
         Long eventId = 1L;
         when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.empty());
 
-        // When & Then
         assertThrows(VenueNotFoundException.class, () -> {
             eventService.updateEvent(eventId, updateEventDTO);
         });
@@ -398,12 +382,10 @@ public class UpdateEventTest {
 
     @Test
     void updateEvent_CategoryNotFound_ThrowsException() {
-        // Given
         Long eventId = 1L;
         when(venueRepository.findById(updateEventDTO.venueId())).thenReturn(Optional.of(newVenue));
         when(categoryRepository.findById(updateEventDTO.categoryId())).thenReturn(Optional.empty());
 
-        // When & Then
         assertThrows(CategoryNotFoundException.class, () -> {
             eventService.updateEvent(eventId, updateEventDTO);
         });

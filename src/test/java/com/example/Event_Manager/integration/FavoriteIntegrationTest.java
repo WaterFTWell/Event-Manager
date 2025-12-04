@@ -55,7 +55,6 @@ public class FavoriteIntegrationTest {
         favoriteRepository.deleteAll();
         userRepository.deleteAll();
 
-        //tworzymy Attendee ktory będzie dodawał do ulubionych
         fan = User.builder()
                 .firstName("Fan")
                 .lastName("Testowy")
@@ -68,7 +67,6 @@ public class FavoriteIntegrationTest {
         userRepository.save(fan);
         fanToken = jwtUtil.generateToken(fan);
 
-        //tworzymy organizatora
         organizer = User.builder()
                 .firstName("Super")
                 .lastName("Organizer")
@@ -89,36 +87,30 @@ public class FavoriteIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Added to favorites"));
 
-        //sprawdzamy w bazie
         assertEquals(1, favoriteRepository.findAll().size());
     }
 
     @Test
     @DisplayName("Should remove from favorites")
     void shouldRemoveFromFavorites() throws Exception {
-        //dodajemy uzytkownikowi organizatora do ulubionych
         mockMvc.perform(post("/api/favorites/" + organizer.getId())
                         .header("Authorization", "Bearer " + fanToken))
                 .andExpect(status().isOk());
 
-        //usuwamy, toggle
         mockMvc.perform(post("/api/favorites/" + organizer.getId())
                         .header("Authorization", "Bearer " + fanToken))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Removed from favorites"));
 
-        //sprawdzamy w bazie
         assertEquals(0, favoriteRepository.findAll().size());
     }
 
     @Test
     @DisplayName("Should return list of favorites")
     void shouldReturnFavoritesPage() throws Exception {
-        //dodajemy uzytkownikowi organizatora do ulubionych
         mockMvc.perform(post("/api/favorites/" + organizer.getId())
                 .header("Authorization", "Bearer " + fanToken));
 
-        //pobieramy get /api/favorites
         mockMvc.perform(get("/api/favorites")
                         .header("Authorization", "Bearer " + fanToken))
                 .andExpect(status().isOk())
@@ -129,24 +121,19 @@ public class FavoriteIntegrationTest {
     @Test
     @DisplayName("Should what happens when favorited organizer is deleted")
     void shouldHandleDeletedOrganizer() throws Exception {
-        //uzytkownik dodaje organizatora do ulubionych
         mockMvc.perform(post("/api/favorites/" + organizer.getId())
                 .header("Authorization", "Bearer " + fanToken));
 
-        //usuwamy organizatora (Admin action simulation)
-        //czyscimy cache zeby Hibernate widział zmiany w bazie
         entityManager.clear();
         userRepository.deleteById(organizer.getId());
         entityManager.flush();
 
-        //pobieramy listę ulubionych
         mockMvc.perform(get("/api/favorites")
                         .header("Authorization", "Bearer " + fanToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].organizerEmail", is("org@test.com")));
 
-        // Weryfikujemy dodatkowo, że organizator faktycznie ma status INACTIVE w bazie
         User deletedOrg = userRepository.findById(organizer.getId()).get();
         assertEquals(Status.INACTIVE, deletedOrg.getStatus());
     }

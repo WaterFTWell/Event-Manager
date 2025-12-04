@@ -29,11 +29,9 @@ public class InterestedService {
     public String toggleInterest(Long userId, Long eventId) {
         Optional<Interested> existingInterest = interestedRepository.findByUserIdAndEventId(userId, eventId);
         if (existingInterest.isPresent()) {
-            //jak jest to usuwamy, czyli uzytkownik odznaczyl
             interestedRepository.delete(existingInterest.get());
             return "Removed from interested";
         } else {
-            //jak nie ma, tworzymy nowego
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found" + userId + " not found"));
 

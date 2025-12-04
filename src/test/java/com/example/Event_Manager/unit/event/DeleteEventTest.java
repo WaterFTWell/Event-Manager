@@ -102,16 +102,13 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should delete event successfully")
     void deleteEvent_Success() {
-        // Given
         Long eventId = 1L;
 
         when(eventRepository.existsById(eventId)).thenReturn(true);
         doNothing().when(eventRepository).deleteById(eventId);
 
-        // When
         assertDoesNotThrow(() -> eventService.deleteEvent(eventId));
 
-        // Then
         verify(eventRepository).existsById(eventId);
         verify(eventRepository).deleteById(eventId);
     }
@@ -119,11 +116,9 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should throw EventNotFoundException when event does not exist")
     void deleteEvent_EventNotFound_ThrowsException() {
-        // Given
         Long eventId = 999L;
         when(eventRepository.existsById(eventId)).thenReturn(false);
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             eventService.deleteEvent(eventId);
         });
@@ -136,14 +131,12 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should throw RuntimeException when repository delete fails")
     void deleteEvent_RepositoryDeleteFailure_ThrowsException() {
-        // Given
         Long eventId = 1L;
 
         when(eventRepository.existsById(eventId)).thenReturn(true);
         doThrow(new RuntimeException("Database connection error"))
                 .when(eventRepository).deleteById(eventId);
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             eventService.deleteEvent(eventId);
         });
@@ -156,15 +149,12 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should verify order of operations during event deletion")
     void deleteEvent_VerifyOperationOrder() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.existsById(eventId)).thenReturn(true);
         doNothing().when(eventRepository).deleteById(eventId);
 
-        // When
         eventService.deleteEvent(eventId);
 
-        // Then
         var inOrder = inOrder(eventRepository);
 
         inOrder.verify(eventRepository).existsById(eventId);
@@ -174,11 +164,9 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should throw EventNotFoundException when exists check returns false")
     void deleteEvent_ExistsCheckReturnsFalse_ThrowsException() {
-        // Given
         Long eventId = 999L;
         when(eventRepository.existsById(eventId)).thenReturn(false);
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             eventService.deleteEvent(eventId);
         });
@@ -191,11 +179,9 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should throw EventNotFoundException when valid id is not in database")
     void deleteEvent_ValidIdButNotInDatabase_ThrowsException() {
-        // Given
         Long eventId = 100L;
         when(eventRepository.existsById(eventId)).thenReturn(false);
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             eventService.deleteEvent(eventId);
         });
@@ -208,12 +194,10 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should throw RuntimeException when repository exists check fails")
     void deleteEvent_RepositoryExistsCheckThrowsException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.existsById(eventId))
                 .thenThrow(new RuntimeException("Database connection timeout"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             eventService.deleteEvent(eventId);
         });
@@ -226,15 +210,12 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should delete event with large id successfully")
     void deleteEvent_LargeEventId_Success() {
-        // Given
         Long largeEventId = 999999999L;
         when(eventRepository.existsById(largeEventId)).thenReturn(true);
         doNothing().when(eventRepository).deleteById(largeEventId);
 
-        // When
         assertDoesNotThrow(() -> eventService.deleteEvent(largeEventId));
 
-        // Then
         verify(eventRepository).existsById(largeEventId);
         verify(eventRepository).deleteById(largeEventId);
     }
@@ -242,29 +223,24 @@ public class DeleteEventTest {
     @Test
     @DisplayName("Should call deleteById with correct parameter")
     void deleteEvent_DeleteByIdCalledWithCorrectParameter() {
-        // Given
         Long eventId = 42L;
 
         when(eventRepository.existsById(eventId)).thenReturn(true);
         doNothing().when(eventRepository).deleteById(eventId);
 
-        // When
         eventService.deleteEvent(eventId);
 
-        // Then
         verify(eventRepository).deleteById(eq(42L));
     }
 
     @Test
     @DisplayName("Should rollback transaction on exception during delete")
     void deleteEvent_TransactionalBehavior_RollbackOnException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.existsById(eventId)).thenReturn(true);
         doThrow(new RuntimeException("Transaction rollback"))
                 .when(eventRepository).deleteById(eventId);
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             eventService.deleteEvent(eventId);
         });

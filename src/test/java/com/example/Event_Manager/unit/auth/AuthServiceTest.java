@@ -42,22 +42,17 @@ public class AuthServiceTest {
     @Test
     @DisplayName("Should register user when data is valid")
     void shouldRegisterUser_WhenDataIsValid() {
-        //Given
         RegisterRequest request = new RegisterRequest("Jan", "Janowski", "jan@gmail.com", "123456789", "password123");
 
-        //mockujemy nie istnienie uzytkownika o podanym emailu i numerze telefonu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(userRepository.existsByPhoneNumber(request.getPhoneNumber())).thenReturn(false);
         when(passwordEncoder.encode(request.getPassword())).thenReturn("hashedPassword");
 
-        //mockujemy generowanie tokena
         when(userDetailsService.loadUserByUsername(request.getEmail())).thenReturn(mock(UserDetails.class));
         when(jwtUtil.generateToken(any())).thenReturn("token_jwt");
 
-        //when
         AuthResponse response = authService.register(request);
 
-        //then
         assertNotNull(response);
         assertEquals("token_jwt", response.getToken());
         assertEquals("User registered successfully", response.getMessage());
@@ -66,16 +61,12 @@ public class AuthServiceTest {
     @Test
     @DisplayName("Should not register user when email exists")
     void shouldNotRegisterUser_WhenEmailExist() {
-        //Given
         RegisterRequest request = new RegisterRequest("Jan", "Janowski", "zajetyEmail@gmail.com", "123456789", "password123");
 
-        //mockujemy ze istnieje uzytkownika o podanym emailu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
 
-        //When
         AuthResponse response = authService.register(request);
 
-        //Then
         assertNotNull(response);
         assertEquals("Email already exists", response.getMessage());
         assertNull(response.getToken());
@@ -85,17 +76,13 @@ public class AuthServiceTest {
     @Test
     @DisplayName("Should not register user when phone number exists")
     void shouldNotRegisterUser_WhenPhoneNumberExist() {
-        //Given
         RegisterRequest request = new RegisterRequest("Jan", "Janowski", "janEmail@gmail.com", "123456789", "password123");
 
-        //mockujemy ze istnieje uzytkownika o podanym nr telefonu
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(userRepository.existsByPhoneNumber(request.getPhoneNumber())).thenReturn(true);
 
-        //When
         AuthResponse response = authService.register(request);
 
-        //Then
         assertNotNull(response);
         assertEquals("Phone number already exists", response.getMessage());
         assertNull(response.getToken());
@@ -116,10 +103,8 @@ public class AuthServiceTest {
 
         when(jwtUtil.generateToken(any())).thenReturn("token_jwt");
 
-        //When
         AuthResponse response = authService.authenticate(request);
 
-        //Then
         verify(authenticationManager).authenticate(any());
         assertNotNull(response.getToken());
         assertEquals("Login successful", response.getMessage());
@@ -127,19 +112,15 @@ public class AuthServiceTest {
     @Test
     @DisplayName("Should throw exception when login password is invalid")
     void shouldThrowException_WhenLoginPasswordIsInvalid() {
-        //Given
         AuthRequest request = new AuthRequest("jan@gmail.com", "zleHaslo");
 
-        //mockujemy ze menadzer uwierzytelniania rzuca wyjatek przy zlym hasle
         doThrow(new BadCredentialsException("Invalid credentials"))
                 .when(authenticationManager).authenticate(any());
 
-        //When
         assertThrows(BadCredentialsException.class, () -> {
             authService.authenticate(request);
         });
 
-        //Then
         verify(jwtUtil, never()).generateToken(any());
     }
 

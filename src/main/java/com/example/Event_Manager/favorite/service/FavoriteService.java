@@ -29,7 +29,6 @@ public class FavoriteService {
     @Transactional
     public String toggleFavorite(Long userId, Long organizerId) {
 
-        //użytkownik nie moze dodać samego siebie do ulubionych
         if (userId.equals(organizerId)) {
             throw new InvalidFavoriteActionException("You cannot add yourself to favorites.");
         }
@@ -46,7 +45,6 @@ public class FavoriteService {
             User organizer = userRepository.findById(organizerId)
                     .orElseThrow(() -> new UserNotFoundException("Organizer not found" + userId + " not found"));
 
-            //walidacja czy "organizator" ma role organizatora
             if (organizer.getRole() != Role.ORGANIZER) {
                 throw new InvalidFavoriteActionException("You can only favorite users with ORGANIZER role.");
             }

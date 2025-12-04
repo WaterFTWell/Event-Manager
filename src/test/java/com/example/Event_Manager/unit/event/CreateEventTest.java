@@ -129,7 +129,6 @@ public class CreateEventTest {
     @Test
     @DisplayName("Should create event successfully")
     void createEvent_Success() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
@@ -137,10 +136,8 @@ public class CreateEventTest {
         when(eventRepository.save(event)).thenReturn(event);
         when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // When
         EventDTO result = eventService.createEvent(validCreateEventDTO);
 
-        // Then
         assertNotNull(result);
         assertEquals("Rockowy koncert", result.name());
         assertEquals("Niesamowity koncert rockowy z zespołami na żywo", result.description());
@@ -157,10 +154,8 @@ public class CreateEventTest {
     @Test
     @DisplayName("Should throw CategoryNotFoundException when category is not found")
     void createEvent_CategoryNotFound_ThrowsCategoryNotFoundException() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // When & Then
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             eventService.createEvent(validCreateEventDTO);
         });
@@ -174,11 +169,9 @@ public class CreateEventTest {
     @Test
     @DisplayName("Should throw EventNotFoundException when venue is not found")
     void createEvent_VenueNotFound_ThrowsEventNotFoundException() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // When & Then
         VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
             eventService.createEvent(validCreateEventDTO);
         });
@@ -191,7 +184,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_InvalidCategoryId_ThrowsException() {
-        // Given
         CreateEventDTO invalidDTO = new CreateEventDTO(
                 "Rock Concert",
                 "Amazing rock concert",
@@ -202,7 +194,6 @@ public class CreateEventTest {
         );
         when(categoryRepository.findById(-1L)).thenReturn(Optional.empty());
 
-        // When & Then
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             eventService.createEvent(invalidDTO);
         });
@@ -214,7 +205,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_InvalidVenueId_ThrowsException() {
-        // Given
         CreateEventDTO invalidDTO = new CreateEventDTO(
                 "Rock Concert",
                 "Amazing rock concert",
@@ -227,7 +217,6 @@ public class CreateEventTest {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(-1L)).thenReturn(Optional.empty());
 
-        // When & Then
         VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
             eventService.createEvent(invalidDTO);
         });
@@ -240,7 +229,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_WithNullOrganizer_Success() {
-        // Given
         LocalDateTime testEventStartDate = validCreateEventDTO.startDate();
         LocalDateTime testEventEndDate = validCreateEventDTO.endDate();
         CreateEventDTO dtoWithoutOrganizer = new CreateEventDTO(
@@ -277,10 +265,8 @@ public class CreateEventTest {
         when(eventRepository.save(eventWithoutOrganizer)).thenReturn(eventWithoutOrganizer);
         when(eventMapper.toDTO(eventWithoutOrganizer)).thenReturn(dtoWithoutOrganizerResponse);
 
-        // When
         EventDTO result = eventService.createEvent(dtoWithoutOrganizer);
 
-        // Then
         assertNotNull(result);
         assertNull(result.organizerId());
         verify(eventRepository).save(eventWithoutOrganizer);
@@ -288,7 +274,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_ValidatesAllDependencies() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
@@ -296,10 +281,8 @@ public class CreateEventTest {
         when(eventRepository.save(event)).thenReturn(event);
         when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // When
         eventService.createEvent(validCreateEventDTO);
 
-        // Then
         verify(categoryRepository).findById(1L);
         verify(venueRepository).findById(1L);
         verify(eventRepository).save(event);
@@ -307,7 +290,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_RepositorySaveFailure_ThrowsException() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
@@ -315,7 +297,6 @@ public class CreateEventTest {
         when(eventRepository.save(event))
                 .thenThrow(new RuntimeException("Database connection error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             eventService.createEvent(validCreateEventDTO);
         });
@@ -327,7 +308,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_MapperReturnsNull_HandlesGracefully() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
 
@@ -344,10 +324,8 @@ public class CreateEventTest {
         when(eventRepository.save(validEvent)).thenReturn(validEvent);
         when(eventMapper.toDTO(validEvent)).thenReturn(null);
 
-        // When
         EventDTO result = eventService.createEvent(validCreateEventDTO);
 
-        // Then
         assertNull(result);
         verify(eventMapper).toDTO(validEvent);
         verify(eventRepository).save(validEvent);
@@ -355,7 +333,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_WithCompleteEventData_Success() {
-        // Given
         Event completeEvent = Event.builder()
                 .id(3L)
                 .name(validCreateEventDTO.name())
@@ -382,10 +359,8 @@ public class CreateEventTest {
         when(eventRepository.save(completeEvent)).thenReturn(completeEvent);
         when(eventMapper.toDTO(completeEvent)).thenReturn(completeEventDTO);
 
-        // When
         EventDTO result = eventService.createEvent(validCreateEventDTO);
 
-        // Then
         assertNotNull(result);
         assertNotNull(result.id());
         assertNotNull(result.name());
@@ -396,7 +371,6 @@ public class CreateEventTest {
 
     @Test
     void createEvent_VerifyTransactionBoundary() {
-        // Given
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
@@ -404,10 +378,8 @@ public class CreateEventTest {
         when(eventRepository.save(event)).thenReturn(event);
         when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // When
         eventService.createEvent(validCreateEventDTO);
 
-        // Then
         var inOrder = inOrder(categoryRepository, venueRepository, eventMapper, eventRepository);
 
         inOrder.verify(categoryRepository).findById(1L);

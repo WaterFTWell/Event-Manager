@@ -21,24 +21,18 @@ public class DeleteCategoryTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-//    @Mock
-//    private CategoryValidation categoryValidation;
-
     @InjectMocks
     private CategoryService categoryService;
 
     @Test
     @DisplayName("Should delete category successfully when it exists")
     void deleteCategory_shouldSucceed_whenCategoryExists() {
-        // Given
         Long categoryId = 1L;
         when(categoryRepository.existsById(categoryId)).thenReturn(true);
         doNothing().when(categoryRepository).deleteById(categoryId);
 
-        // When
         categoryService.deleteCategory(categoryId);
 
-        // Then
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(categoryRepository, times(1)).deleteById(categoryId);
     }
@@ -46,11 +40,9 @@ public class DeleteCategoryTest {
     @Test
     @DisplayName("Should throw CategoryNotFoundException when trying to delete a non-existent category")
     void deleteCategory_shouldThrowException_whenCategoryDoesNotExist() {
-        // Given
         Long nonExistentId = 99L;
         when(categoryRepository.existsById(nonExistentId)).thenReturn(false);
 
-        // When & Then
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             categoryService.deleteCategory(nonExistentId);
         });

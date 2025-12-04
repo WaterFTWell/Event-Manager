@@ -214,7 +214,6 @@ public class GetEventsTest {
 
     @Test
     void getAllEvents_Success_ReturnsMultipleEvents() {
-        // Given
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event2, event3), pageable, 3);
         when(eventRepository.findAll(pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
@@ -222,10 +221,8 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getAllEvents(pageable);
 
-        // Then
         assertEquals(3, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO2, eventDTO3)));
         verify(eventRepository).findAll(pageable);
@@ -235,14 +232,12 @@ public class GetEventsTest {
 
     @Test
     void getAllEvents_EmptyRepository_ThrowsException() {
-        // Given
         Page<Event> emptyPage = Page.empty();
         when(eventRepository.findAll(pageable)).thenReturn(emptyPage);
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getAllEvents(pageable));
 
         verify(eventRepository).findAll(pageable);
@@ -252,7 +247,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByCategory_Success_ReturnsFilteredEvents() {
-        // Given
         Long categoryId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
         when(eventRepository.findByCategory_Id(categoryId, pageable)).thenReturn(eventPage);
@@ -260,10 +254,8 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getEventsByCategory(categoryId, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
         verify(eventRepository).findByCategory_Id(categoryId, pageable);
@@ -272,14 +264,12 @@ public class GetEventsTest {
 
     @Test
     void getEventsByCategory_NoEventsInCategory_ThrowsException() {
-        // Given
         Long categoryId = 99L;
         Page<Event> emptyPage = Page.empty();
         when(eventRepository.findByCategory_Id(categoryId, pageable)).thenReturn(emptyPage);
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByCategory(categoryId, pageable));
 
         verify(eventRepository).findByCategory_Id(categoryId, pageable);
@@ -288,7 +278,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByVenue_Success_ReturnsFilteredEvents() {
-        // Given
         Long venueId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
         when(eventRepository.findByVenue_Id(venueId, pageable)).thenReturn(eventPage);
@@ -296,10 +285,8 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getEventsByVenue(venueId, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
         verify(eventRepository).findByVenue_Id(venueId, pageable);
@@ -308,14 +295,12 @@ public class GetEventsTest {
 
     @Test
     void getEventsByVenue_NoEventsInVenue_ThrowsException() {
-        // Given
         Long venueId = 99L;
         Page<Event> emptyPage = Page.empty();
         when(eventRepository.findByVenue_Id(venueId, pageable)).thenReturn(emptyPage);
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByVenue(venueId, pageable));
 
         verify(eventRepository).findByVenue_Id(venueId, pageable);
@@ -324,7 +309,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByDateRange_Success_ReturnsEventsInRange() {
-        // Given
         LocalDateTime start = LocalDateTime.now().plusDays(2);
         LocalDateTime end = LocalDateTime.now().plusDays(10);
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event2), pageable, 2);
@@ -333,10 +317,8 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event2)).thenReturn(eventDTO2);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getEventsByDateRange(start, end, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         verify(eventRepository).findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable));
         verify(eventValidation).checkIfEventPageEmpty(eventPage);
@@ -344,7 +326,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByDateRange_NoEventsInRange_ThrowsException() {
-        // Given
         LocalDateTime start = LocalDateTime.now().plusDays(100);
         LocalDateTime end = LocalDateTime.now().plusDays(200);
         Page<Event> emptyPage = Page.empty();
@@ -352,7 +333,6 @@ public class GetEventsTest {
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByDateRange(start, end, pageable));
 
         verify(eventRepository).findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable));
@@ -361,7 +341,6 @@ public class GetEventsTest {
 
     @Test
     void searchEventsByName_Success_ReturnsMatchingEvents() {
-        // Given
         String searchName = "koncert";
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
         when(eventRepository.findByNameContainingIgnoreCase(searchName, pageable)).thenReturn(eventPage);
@@ -370,10 +349,8 @@ public class GetEventsTest {
         doNothing().when(eventValidation).checkEventName(searchName);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.searchEventsByName(searchName, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         verify(eventValidation).checkEventName(searchName);
         verify(eventRepository).findByNameContainingIgnoreCase(searchName, pageable);
@@ -382,7 +359,6 @@ public class GetEventsTest {
 
     @Test
     void searchEventsByName_NoMatches_ThrowsException() {
-        // Given
         String searchName = "xyz123";
         Page<Event> emptyPage = Page.empty();
         when(eventRepository.findByNameContainingIgnoreCase(searchName, pageable)).thenReturn(emptyPage);
@@ -390,7 +366,6 @@ public class GetEventsTest {
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.searchEventsByName(searchName, pageable));
 
         verify(eventValidation).checkEventName(searchName);
@@ -400,7 +375,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByOrganizerId_Success_ReturnsFilteredEvents() {
-        // Given
         Long organizerId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
         when(eventRepository.findByOrganizer_Id(organizerId, pageable)).thenReturn(eventPage);
@@ -408,10 +382,8 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getEventsByOrganizer(organizerId, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
         verify(eventRepository).findByOrganizer_Id(organizerId, pageable);
@@ -420,14 +392,12 @@ public class GetEventsTest {
 
     @Test
     void getEventsByOrganizerId_NoEventsForOrganizer_ThrowsException() {
-        // Given
         Long organizerId = 99L;
         Page<Event> emptyPage = Page.empty();
         when(eventRepository.findByOrganizer_Id(organizerId, pageable)).thenReturn(emptyPage);
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByOrganizer(organizerId, pageable));
 
         verify(eventRepository).findByOrganizer_Id(organizerId, pageable);
@@ -436,7 +406,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByOrganizerName_Success_ReturnsFilteredEvents() {
-        // Given
         String organizerName = "Jan Kowalski";
         String normalizedName = organizerName.trim();
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
@@ -446,10 +415,8 @@ public class GetEventsTest {
         doNothing().when(eventValidation).checkOrganizerName(organizerName);
         doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        // When
         Page<EventDTO> result = eventService.getEventsByOrganizer(organizerName, pageable);
 
-        // Then
         assertEquals(2, result.getContent().size());
         verify(eventValidation).checkOrganizerName(organizerName);
         verify(eventRepository).findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable);
@@ -458,7 +425,6 @@ public class GetEventsTest {
 
     @Test
     void getEventsByOrganizerName_NoEventsForOrganizer_ThrowsException() {
-        // Given
         String organizerName = "Nieistniejący Organizator";
         String normalizedName = organizerName.trim();
         Page<Event> emptyPage = Page.empty();
@@ -467,7 +433,6 @@ public class GetEventsTest {
         doThrow(new EventsNotFoundException("Brak wydarzeń."))
                 .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
-        // When & Then
         assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByOrganizer(organizerName, pageable));
 
         verify(eventValidation).checkOrganizerName(organizerName);

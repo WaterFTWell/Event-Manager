@@ -34,7 +34,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        // mapujemy tylko to co przyszlo w requescie
         userMapper.updateEntity(user, updateDTO);
 
         User savedUser = userRepository.save(user);
@@ -53,19 +52,16 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
 
-        //czy nowe hasła są takie same
         if (!request.newPassword().equals(request.confirmationPassword())) {
             throw new IllegalArgumentException("New password and confirmation password do not match");
         }
 
         User user = getUserByIdOrThrow(userId);
 
-        //czy stare hasło jest poprawne
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Incorrect current password");
         }
 
-        //Ustawiamy nowe hasło
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
     }

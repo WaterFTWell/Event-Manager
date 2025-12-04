@@ -40,8 +40,6 @@ public class GetEventTest {
     @Mock
     private EventMapper eventMapper;
 
-//    @Mock
-//    private EventValidation eventValidation;
 
     @InjectMocks
     private EventService eventService;
@@ -127,15 +125,12 @@ public class GetEventTest {
 
     @Test
     void getEventById_Success_ReturnsEventDTO() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // When
         EventDTO result = eventService.getEventById(eventId);
 
-        // Then
         assertNotNull(result);
         assertEquals(eventDTO.id(), result.id());
         assertEquals(eventDTO.name(), result.name());
@@ -146,11 +141,9 @@ public class GetEventTest {
 
     @Test
     void getEventById_EventNotFound_ThrowsException() {
-        // Given
         Long eventId = 999L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.empty());
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> eventService.getEventById(eventId));
 
         assertNotNull(exception.getMessage());
@@ -160,11 +153,9 @@ public class GetEventTest {
 
     @Test
     void getEventById_RepositoryThrowsException_PropagatesException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenThrow(new RuntimeException("Database connection error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(eventId));
 
         assertEquals("Database connection error", exception.getMessage());
@@ -174,12 +165,10 @@ public class GetEventTest {
 
     @Test
     void getEventById_MapperThrowsException_PropagatesException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toDTO(event)).thenThrow(new RuntimeException("Mapping error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventById(eventId));
 
         assertEquals("Mapping error", exception.getMessage());
@@ -189,15 +178,12 @@ public class GetEventTest {
 
     @Test
     void getEventSummary_Success_ReturnsSummaryDTO() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toSummaryDTO(event)).thenReturn(eventSummaryDTO);
 
-        // When
         EventSummaryDTO result = eventService.getEventSummary(eventId);
 
-        // Then
         assertNotNull(result);
         assertEquals(eventSummaryDTO.id(), result.id());
         assertEquals(eventSummaryDTO.name(), result.name());
@@ -207,11 +193,9 @@ public class GetEventTest {
 
     @Test
     void getEventSummary_EventNotFound_ThrowsException() {
-        // Given
         Long eventId = 999L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.empty());
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> eventService.getEventSummary(eventId));
 
         assertNotNull(exception.getMessage());
@@ -221,11 +205,9 @@ public class GetEventTest {
 
     @Test
     void getEventSummary_RepositoryThrowsException_PropagatesException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenThrow(new RuntimeException("Database error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventSummary(eventId));
 
         assertEquals("Database error", exception.getMessage());
@@ -235,12 +217,10 @@ public class GetEventTest {
 
     @Test
     void getEventSummary_MapperThrowsException_PropagatesException() {
-        // Given
         Long eventId = 1L;
         when(eventRepository.findEventById(eventId)).thenReturn(Optional.of(event));
         when(eventMapper.toSummaryDTO(event)).thenThrow(new RuntimeException("Summary mapping error"));
 
-        // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> eventService.getEventSummary(eventId));
 
         assertEquals("Summary mapping error", exception.getMessage());

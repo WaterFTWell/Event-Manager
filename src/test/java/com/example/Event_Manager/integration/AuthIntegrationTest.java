@@ -44,7 +44,6 @@ public class AuthIntegrationTest {
 
     @BeforeEach
     void setup() {
-        //czyszczenie bazy przed kazdym testem
         userRepository.deleteAll();
     }
     @Test
@@ -85,7 +84,6 @@ public class AuthIntegrationTest {
     }
     @Test
     void shouldFailRegisteringSameEmail() throws Exception {
-        //rejestrujemy pierwszego
         RegisterRequest request1 = RegisterRequest.builder()
                 .firstName("User1")
                 .lastName("User1")
@@ -99,7 +97,6 @@ public class AuthIntegrationTest {
                         .content(objectMapper.writeValueAsString(request1)))
                 .andExpect(status().isOk());
 
-        // probujemy zarejestrowac drugiego z tym samym mailem
         RegisterRequest request2 = RegisterRequest.builder()
                 .firstName("User2")
                 .lastName("User2")
@@ -118,7 +115,6 @@ public class AuthIntegrationTest {
 
     @Test
     void shouldLoginExistingUser() throws Exception {
-        //rejestrujemy uzytkownika zeby miec kogo logowac
         RegisterRequest registerRequest = RegisterRequest.builder()
                 .firstName("Jan")
                 .lastName("Janowski")
@@ -132,7 +128,6 @@ public class AuthIntegrationTest {
                         .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isOk());
 
-        //próba logowania
         AuthRequest loginRequest = new AuthRequest("jan@test.com", "password123");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
@@ -144,7 +139,6 @@ public class AuthIntegrationTest {
     }
     @Test
     void shouldFailLoginWithWrongPassword() throws Exception {
-        // rejestrujemy usera
         RegisterRequest registerRequest = RegisterRequest.builder()
                 .firstName("Jan")
                 .lastName("Janowski")
@@ -157,7 +151,6 @@ public class AuthIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)));
 
-        // probujemy sie zalogowac ze zlym haslem
         AuthRequest badLogin = new AuthRequest("jan@test.com", "zleHaslo321");
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")

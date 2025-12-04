@@ -33,7 +33,6 @@ public class UpdateUserTest {
     @Test
     @DisplayName("Should update user profile successfully")
     void updateUser_Success() {
-        //Given
         Long userId = 1L;
         UpdateUserDTO updateDTO = new UpdateUserDTO("Nowy", "Kowalski", "987654321");
         User existingUser = User.builder().id(userId).firstName("Stary").build();
@@ -41,18 +40,14 @@ public class UpdateUserTest {
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        //save zwraca zaktualizowanego usera
         when(userRepository.save(existingUser)).thenReturn(existingUser);
         when(userMapper.toDTO(existingUser)).thenReturn(expectedResponse);
 
-        //When
         UserDTO result = userService.updateUserProfile(userId, updateDTO);
 
-        //Then
         assertNotNull(result);
         assertEquals("Nowy", result.firstName());
 
-        //weryfikujemy czy mapper przepisał dane z DTO do encji
         verify(userMapper).updateEntity(existingUser, updateDTO);
         verify(userRepository).save(existingUser);
     }
@@ -60,13 +55,11 @@ public class UpdateUserTest {
     @Test
     @DisplayName("Should throw exception when user to update does not exist")
     void updateUser_UserNotFound_ThrowsException() {
-        //Given
         Long userId = 99L;
         UpdateUserDTO updateDTO = new UpdateUserDTO("A", "B", "123");
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        //Then
         assertThrows(UserNotFoundException.class, () -> userService.updateUserProfile(userId, updateDTO));
         verify(userRepository, never()).save(any());
     }
