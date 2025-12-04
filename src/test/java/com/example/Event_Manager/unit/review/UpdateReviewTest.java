@@ -46,7 +46,6 @@ public class UpdateReviewTest {
     @Test
     @DisplayName("Should update review successfully with valid data")
     void updateReview_shouldSucceed_whenDataIsValid() {
-        // Given
         Long reviewId = 1L;
         Long userId = 10L;
         Long categoryId = 5L;
@@ -78,17 +77,13 @@ public class UpdateReviewTest {
         ReviewDTO expectedDTO = new ReviewDTO(reviewId, event.getId(), event.getName(),
                 userId, user.getFullName(), 9, "Updated comment!", createdAt);
 
-        // doNothing().when(reviewValidation).checkIfRequestNotNull(updateDTO); // USUNIĘTE
-        // doNothing().when(reviewValidation).checkIfIdValid(reviewId); // USUNIĘTE
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(existingReview));
         doNothing().when(reviewMapper).updateEntity(existingReview, updateDTO);
         when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
         when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
 
-        // When
         ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, user);
 
-        // Then
         assertNotNull(result);
         assertEquals(expectedDTO.id(), result.id());
         assertEquals(expectedDTO.rating(), result.rating());
@@ -103,7 +98,6 @@ public class UpdateReviewTest {
     @Test
     @DisplayName("Should throw ReviewNotFoundException when review does not exist")
     void updateReview_shouldThrowException_whenReviewNotFound() {
-        // Given
         Long nonExistentReviewId = 99L;
         Long userId = 10L;
         UpdateReviewDTO updateDTO = new UpdateReviewDTO(1L, 5, "some comment");
@@ -111,7 +105,6 @@ public class UpdateReviewTest {
 
         when(reviewRepository.getReviewById(nonExistentReviewId)).thenReturn(Optional.empty());
 
-        // When & Then
         ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
             reviewService.updateReview(nonExistentReviewId, updateDTO, user);
         });
@@ -127,7 +120,6 @@ public class UpdateReviewTest {
     @Test
     @DisplayName("Should update only rating when comment is null")
     void updateReview_shouldSucceed_whenOnlyRatingIsUpdated() {
-        // Given
         Long reviewId = 1L;
         Long userId = 10L;
         UpdateReviewDTO updateDTO = new UpdateReviewDTO(null, 10, null);
@@ -159,10 +151,8 @@ public class UpdateReviewTest {
         when(reviewRepository.save(existingReview)).thenReturn(updatedReview);
         when(reviewMapper.toDTO(updatedReview)).thenReturn(expectedDTO);
 
-        // When
         ReviewDTO result = reviewService.updateReview(reviewId, updateDTO, user);
 
-        // Then
         assertNotNull(result);
         assertEquals(10, result.rating());
         assertEquals("Original comment", result.comment());

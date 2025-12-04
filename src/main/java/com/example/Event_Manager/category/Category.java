@@ -24,7 +24,6 @@ public class Category {
     @Column(nullable = false, unique = true, name = "name")
     private String name;
 
-    // jak nie trzeba ograniczenia to usunie sie length
     @Column(nullable = false, length = 500, name = "description", columnDefinition = "TEXT")
     private String description;
 

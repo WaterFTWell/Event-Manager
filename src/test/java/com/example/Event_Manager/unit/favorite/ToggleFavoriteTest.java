@@ -34,7 +34,6 @@ public class ToggleFavoriteTest {
     @Test
     @DisplayName("Should add to favorites when not already favorited")
     void toggleFavorite_ShouldAdd_WhenNotExists() {
-        //Given
         Long userId = 1L;
         Long organizerId = 2L;
         User user = User.builder().id(userId).build();
@@ -44,10 +43,8 @@ public class ToggleFavoriteTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.findById(organizerId)).thenReturn(Optional.of(organizer));
 
-        //When
         String result = favoriteService.toggleFavorite(userId, organizerId);
 
-        //Then
         assertEquals("Added to favorites", result);
         verify(favoriteRepository).save(any(Favorite.class));
     }
@@ -55,17 +52,14 @@ public class ToggleFavoriteTest {
     @Test
     @DisplayName("Should remove from favorites when already favorited")
     void toggleFavorite_ShouldRemove_WhenExists() {
-        //Given
         Long userId = 1L;
         Long organizerId = 2L;
         Favorite existingFavorite = new Favorite();
 
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.of(existingFavorite));
 
-        //When
         String result = favoriteService.toggleFavorite(userId, organizerId);
 
-        //Then
         assertEquals("Removed from favorites", result);
         verify(favoriteRepository).delete(existingFavorite);
     }
@@ -82,7 +76,6 @@ public class ToggleFavoriteTest {
     @Test
     @DisplayName("Should throw exception when target is not an organizer")
     void toggleFavorite_NotOrganizer_ThrowsException() {
-        //Given
         Long userId = 1L;
         Long targetId = 2L;
         User user = User.builder().id(userId).build();
@@ -92,39 +85,32 @@ public class ToggleFavoriteTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.findById(targetId)).thenReturn(Optional.of(target));
 
-        //Then
         assertThrows(InvalidFavoriteActionException.class, () -> favoriteService.toggleFavorite(userId, targetId));
     }
 
     @Test
     @DisplayName("Should throw UserNotFoundException when user does notexist in database")
     void toggleFavorite_UserNotFound_ThrowsException() {
-        //Given
         Long userId = 99L;
         Long organizerId = 2L;
 
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.empty());
-        //symulujemy że baza zwraca empty
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        //Then
         assertThrows(UserNotFoundException.class, () -> favoriteService.toggleFavorite(userId, organizerId));
         verify(favoriteRepository, never()).save(any());
     }
     @Test
     @DisplayName("Should throw UserNotFoundException when organizer does notexist in database")
     void toggleFavorite_OrganizerNotFound_ThrowsException() {
-        //Given
         Long userId = 1L;
         Long organizerId = 99L;
         User user = User.builder().id(userId).build();
 
         when(favoriteRepository.findByUserIdAndOrganizerId(userId, organizerId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        //Symulujemy brak organizatora
         when(userRepository.findById(organizerId)).thenReturn(Optional.empty());
 
-        //Then
         assertThrows(UserNotFoundException.class, () -> favoriteService.toggleFavorite(userId, organizerId));
         verify(favoriteRepository, never()).save(any());
     }

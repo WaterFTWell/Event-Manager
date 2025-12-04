@@ -62,7 +62,6 @@ public class AuthService {
                 .build();
     }
 
-    // 3 selecty przy logowaniu xddd wez to popraw rajmund
     public AuthResponse authenticate(AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

@@ -54,7 +54,6 @@ public class GetReviewsTest {
     @Test
     @DisplayName("Should return a page of reviews for a valid event ID")
     void getReviewsForEvent_shouldSucceed_whenReviewsExist() {
-        // Given
         Long eventId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -87,18 +86,13 @@ public class GetReviewsTest {
         ReviewDTO reviewDTO2 = new ReviewDTO(102L, eventId, "Koncert", 1L,
                 "Doktor Makaljer", 7, "Dobry.", now.minusHours(1));
 
-        // doNothing().when(eventValidation).checkIfIdValid(eventId); // USUNIĘTE
-        // when(eventRepository.findById(eventId)).thenReturn(Optional.of(event)); // USUNIĘTE
-        // doNothing().when(eventValidation).checkIfObjectExist(event); // USUNIĘTE
         when(reviewRepository.findByEventId(eventId, pageable)).thenReturn(reviewPage);
         when(reviewMapper.toDTO(review1)).thenReturn(reviewDTO1);
         when(reviewMapper.toDTO(review2)).thenReturn(reviewDTO2);
         doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
-        // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
         assertEquals(2, result.getContent().size());
@@ -114,7 +108,6 @@ public class GetReviewsTest {
     @Test
     @DisplayName("Should return correct page when requesting second page")
     void getReviewsForEvent_shouldReturnSecondPage_whenPageableIsSecondPage() {
-        // Given
         Long eventId = 1L;
         Pageable pageable = PageRequest.of(1, 5);
 
@@ -141,10 +134,8 @@ public class GetReviewsTest {
         when(reviewMapper.toDTO(review)).thenReturn(reviewDTO);
         doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
-        // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(6, result.getTotalElements());
         assertEquals(1, result.getContent().size());
@@ -160,7 +151,6 @@ public class GetReviewsTest {
     @Test
     @DisplayName("Should throw ReviewsNotFoundException when no reviews are found")
     void getReviewsForEvent_shouldThrowException_whenNoReviewsFound() {
-        // Given
         Long eventId = 2L;
         Pageable pageable = PageRequest.of(0, 10);
         Event event = Event.builder().id(eventId).name("Empty Event").build();
@@ -170,7 +160,6 @@ public class GetReviewsTest {
         doThrow(new ReviewsNotFoundException("No reviews found for event with id: " + eventId))
                 .when(reviewValidation).checkIfReviewsEmpty(emptyPage);
 
-        // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> {
             reviewService.getReviewsForEvent(eventId, pageable);
         });
@@ -185,7 +174,6 @@ public class GetReviewsTest {
     @Test
     @DisplayName("Should throw ReviewsNotFoundException when repository returns null")
     void getReviewsForEvent_shouldThrowException_whenRepositoryReturnsNull() {
-        // Given
         Long eventId = 3L;
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -193,7 +181,6 @@ public class GetReviewsTest {
         doThrow(new ReviewsNotFoundException("No reviews found for event with id: " + eventId))
                 .when(reviewValidation).checkIfReviewsEmpty(null);
 
-        // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> {
             reviewService.getReviewsForEvent(eventId, pageable);
         });
@@ -208,7 +195,6 @@ public class GetReviewsTest {
     @Test
     @DisplayName("Should handle single review on page")
     void getReviewsForEvent_shouldSucceed_whenSingleReviewExists() {
-        // Given
         Long eventId = 4L;
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -234,10 +220,8 @@ public class GetReviewsTest {
         when(reviewMapper.toDTO(review)).thenReturn(reviewDTO);
         doNothing().when(reviewValidation).checkIfReviewsEmpty(reviewPage);
 
-        // When
         Page<ReviewDTO> result = reviewService.getReviewsForEvent(eventId, pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());

@@ -37,7 +37,6 @@ public class GetFavoritesTest {
     @Test
     @DisplayName("Should return list of favorites")
     void getUserFavorites_Success() {
-        //Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         User organizer = User.builder().id(2L).firstName("Org").lastName("One").email("org@test.com").build();
@@ -50,10 +49,8 @@ public class GetFavoritesTest {
         when(favoriteRepository.findAllByUserId(userId, pageable)).thenReturn(favoritePage);
         when(favoriteMapper.toDTO(fav)).thenReturn(dto);
 
-        //When
         Page<FavoriteDTO> result = favoriteService.getUserFavorites(userId, pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals("Org One", result.getContent().get(0).organizerName());
@@ -62,19 +59,14 @@ public class GetFavoritesTest {
     @Test
     @DisplayName("Should return empty list when user has no favorites")
     void getUserFavorites_EmptyList_WhenNoFavorites() {
-        //Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
 
-        //User istnieje
         when(userRepository.existsById(userId)).thenReturn(true);
-        //ale nie posiada ulubionych organizatorów
         when(favoriteRepository.findAllByUserId(userId, pageable)).thenReturn(Page.empty());
 
-        //When
         Page<FavoriteDTO> result = favoriteService.getUserFavorites(userId, pageable);
 
-        //Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(favoriteMapper, never()).toDTO(any());
@@ -83,13 +75,11 @@ public class GetFavoritesTest {
     @Test
     @DisplayName("Should throw UserNotFoundException when request favorite for nonexistent user")
     void getUserFavorites_UserNotFound_ThrowsException() {
-        //Given
         Long userId = 99L;
         Pageable pageable = PageRequest.of(0, 10);
 
         when(userRepository.existsById(userId)).thenReturn(false); //User nie istnieje
 
-        //When & Then
         assertThrows(UserNotFoundException.class, () -> favoriteService.getUserFavorites(userId, pageable));
         verify(favoriteRepository, never()).findAllByUserId(any(), any());
     }

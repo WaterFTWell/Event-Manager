@@ -39,7 +39,6 @@ public class DeleteReviewTest {
     @Test
     @DisplayName("Should delete review successfully when valid IDs are provided")
     void deleteReview_shouldSucceed_whenIdsAreValid() {
-        // Given
         Long reviewId = 1L;
         Long userId = 10L;
 
@@ -53,10 +52,8 @@ public class DeleteReviewTest {
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.of(review));
         doNothing().when(reviewRepository).deleteById(reviewId);
 
-        // When
         reviewService.deleteReview(reviewId, user);
 
-        // Then
         verify(reviewRepository).getReviewById(reviewId);
         verify(reviewRepository).deleteById(reviewId);
     }
@@ -64,13 +61,11 @@ public class DeleteReviewTest {
     @Test
     @DisplayName("Should throw exception when review is not found")
     void deleteReview_shouldThrowException_whenReviewNotFound() {
-        // Given
         Long reviewId = 999L;
         User user = new User();
 
         when(reviewRepository.getReviewById(reviewId)).thenReturn(Optional.empty());
 
-        // When & Then
         ReviewNotFoundException exception = assertThrows(ReviewNotFoundException.class, () -> {
             reviewService.deleteReview(reviewId, user);
         });

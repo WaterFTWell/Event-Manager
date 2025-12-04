@@ -22,7 +22,6 @@ public class City {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // City names may not be unique. e.g. Paris, France and Paris, TX
     @Column(nullable = false)
     private String name;
 

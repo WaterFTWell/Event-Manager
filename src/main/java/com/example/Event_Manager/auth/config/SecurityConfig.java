@@ -30,11 +30,6 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    /*
-        umozliwilem pobieranie uzytkonikom bez konta np eventow itd
-        dodalem defaultowe zabezpiecznia dla endpointow wymagajacych autoryzacji
-        -> 401 i 403 jak ktos nie jest zalogowany
-    */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

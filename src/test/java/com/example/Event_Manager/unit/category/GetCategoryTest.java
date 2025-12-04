@@ -37,9 +37,6 @@ public class GetCategoryTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-//    @Mock
-//    private CategoryValidation categoryValidation;
-
     @InjectMocks
     private CategoryService categoryService;
 
@@ -60,15 +57,12 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getCategoryById: Should return category when ID exists")
     void getCategoryById_shouldReturnCategory_whenIdExists() {
-        // Given
         Long existingId = 1L;
         when(categoryRepository.findById(existingId)).thenReturn(Optional.of(category1));
         when(categoryMapper.toDTO(category1)).thenReturn(categoryDTO1);
 
-        // When
         CategoryDTO result = categoryService.getCategoryById(existingId);
 
-        // Then
         assertNotNull(result);
         assertEquals(categoryDTO1, result);
         verify(categoryRepository).findById(existingId);
@@ -78,11 +72,9 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getCategoryById: Should throw CategoryNotFoundException when ID does not exist")
     void getCategoryById_shouldThrowException_whenIdDoesNotExist() {
-        // Given
         Long nonExistentId = 99L;
         when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // When & Then
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategoryById(nonExistentId));
 
         assertEquals("Category not found in database.", exception.getMessage());
@@ -93,7 +85,6 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should return a page of categories when they exist")
     void getAllCategories_shouldReturnCategoryPage_whenCategoriesExist() {
-        // Given
         Pageable pageable = PageRequest.of(0, 10);
         List<Category> categories = List.of(category1, category2);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, categories.size());
@@ -102,10 +93,8 @@ public class GetCategoryTest {
         when(categoryMapper.toDTO(category1)).thenReturn(categoryDTO1);
         when(categoryMapper.toDTO(category2)).thenReturn(categoryDTO2);
 
-        // When
         Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
         assertEquals(2, result.getContent().size());
@@ -121,7 +110,6 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should return correct page when requesting second page")
     void getAllCategories_shouldReturnSecondPage_whenPageableIsSecondPage() {
-        // Given
         Pageable pageable = PageRequest.of(1, 5);
         Category category3 = Category.builder().id(3L).name("Teatr").description("Wydarzenia teatralne").build();
         CategoryDTO categoryDTO3 = new CategoryDTO(3L, "Teatr", "Wydarzenia teatralne");
@@ -132,10 +120,8 @@ public class GetCategoryTest {
         when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         when(categoryMapper.toDTO(category3)).thenReturn(categoryDTO3);
 
-        // When
         Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(6, result.getTotalElements());
         assertEquals(1, result.getContent().size());
@@ -152,7 +138,6 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should return a page with one category")
     void getAllCategories_shouldReturnSingleCategoryPage_whenOneCategoryExists() {
-        // Given
         Pageable pageable = PageRequest.of(0, 10);
         List<Category> categories = List.of(category1);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, 1);
@@ -160,10 +145,8 @@ public class GetCategoryTest {
         when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         when(categoryMapper.toDTO(category1)).thenReturn(categoryDTO1);
 
-        // When
         Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());
@@ -179,13 +162,11 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should throw CategoryNotFoundException when no categories are in the database")
     void getAllCategories_shouldThrowException_whenNoCategoriesExist() {
-        // Given
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(categoryRepository.findAll(pageable)).thenReturn(emptyPage);
 
-        // When & Then
         CategoriesNotFoundException exception = assertThrows(CategoriesNotFoundException.class, () -> categoryService.getAllCategories(pageable));
 
         assertEquals("No categories found in database.", exception.getMessage());
@@ -196,7 +177,6 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should handle custom page size correctly")
     void getAllCategories_shouldHandleCustomPageSize() {
-        // Given
         Pageable pageable = PageRequest.of(0, 5);
         Category category3 = Category.builder().id(3L).name("Teatr").description("Wydarzenia teatralne").build();
         CategoryDTO categoryDTO3 = new CategoryDTO(3L, "Teatr", "Wydarzenia teatralne");
@@ -209,10 +189,8 @@ public class GetCategoryTest {
         when(categoryMapper.toDTO(category2)).thenReturn(categoryDTO2);
         when(categoryMapper.toDTO(category3)).thenReturn(categoryDTO3);
 
-        // When
         Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(10, result.getTotalElements());
         assertEquals(3, result.getContent().size());
@@ -227,7 +205,6 @@ public class GetCategoryTest {
     @Test
     @DisplayName("getAllCategories: Should map all categories correctly")
     void getAllCategories_shouldMapAllCategoriesCorrectly() {
-        // Given
         Pageable pageable = PageRequest.of(0, 10);
         List<Category> categories = List.of(category1, category2);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, 2);
@@ -236,10 +213,8 @@ public class GetCategoryTest {
         when(categoryMapper.toDTO(category1)).thenReturn(categoryDTO1);
         when(categoryMapper.toDTO(category2)).thenReturn(categoryDTO2);
 
-        // When
         Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        // Then
         List<CategoryDTO> content = result.getContent();
         assertTrue(content.contains(categoryDTO1));
         assertTrue(content.contains(categoryDTO2));

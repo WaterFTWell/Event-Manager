@@ -48,20 +48,16 @@ public class InterestedServiceTest {
     @Test
     @DisplayName("Should add interest when it does not exist")
     void toggleInterest_shouldAdd_whenNotExists() {
-        //Given
         Long userId = 1L;
         Long eventId = 100L;
         User user = User.builder().id(userId).build();
         Event event = Event.builder().id(eventId).build();
-        // mockujemy ze nie ma jeszcze lajka w bazie
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
 
-        //When
         String result = interestedService.toggleInterest(userId, eventId);
 
-        //Then
         assertEquals("Added to interested", result);
         verify(interestedRepository).save(any(Interested.class));
     }
@@ -69,17 +65,13 @@ public class InterestedServiceTest {
     @Test
     @DisplayName("Should remove interest when it exists")
     void toggleInterest_shouldRemove_whenExists() {
-        //Given
         Long userId = 1L;
         Long eventId = 100L;
         Interested existingInterest = new Interested();
-        // mockujemy ze lajk juz jest
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.of(existingInterest));
 
-        //When
         String result = interestedService.toggleInterest(userId, eventId);
 
-        //Then
         assertEquals("Removed from interested", result);
         verify(interestedRepository).delete(existingInterest); // sprawdzamy czy usunal
     }
@@ -87,7 +79,6 @@ public class InterestedServiceTest {
     @Test
     @DisplayName("Should return list of interested events")
     void getUserInterests_shouldReturnPage() {
-        //Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         Date now = new Date();
@@ -100,9 +91,7 @@ public class InterestedServiceTest {
 
         when(userRepository.existsById(userId)).thenReturn(true); //serwis sprawdza czy user istnieje
         when(interestedRepository.findAllByUserId(userId, pageable)).thenReturn(page);
-        //When
         Page<InterestedDTO> result = interestedService.getUserInterests(userId, pageable);
-        //Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals("Fajny Event", result.getContent().getFirst().eventName());
@@ -111,16 +100,13 @@ public class InterestedServiceTest {
     @Test
     @DisplayName("Should throw EventNotFoundException when event does not exist")
     void toggleInterest_shouldThrowException_whenEventNotFound() {
-        //Given
         Long userId = 1L;
         Long eventId = 999L;
 
         when(interestedRepository.findByUserIdAndEventId(userId, eventId)).thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(User.builder().id(userId).build()));
-        //mockujemy event nie znaleziony,pusty Optional
         when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
 
-        //Then
         assertThrows(EventNotFoundException.class, () ->
             interestedService.toggleInterest(userId, eventId)
         );
@@ -128,17 +114,14 @@ public class InterestedServiceTest {
     @Test
     @DisplayName("Should return empty list when user has empty list(no interests)")
     void getUserInterests_shouldReturnEmptyList_whenNoInterestsFound() {
-        //given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         when(userRepository.existsById(userId)).thenReturn(true);
         when(interestedRepository.findAllByUserId(userId, pageable)).thenReturn(Page.empty());
 
 
-        //when
         Page<InterestedDTO> result = interestedService.getUserInterests(userId, pageable);
 
-        // Then
         assertNotNull(result);
         assertEquals(0, result.getTotalElements());
     }

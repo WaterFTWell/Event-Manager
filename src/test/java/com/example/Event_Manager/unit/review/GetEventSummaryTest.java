@@ -51,7 +51,6 @@ public class GetEventSummaryTest {
     @Test
     @DisplayName("Should return event review summary successfully when reviews exist")
     void getEventReviewSummary_shouldSucceed_whenReviewsExist() {
-        // Given
         Long eventId = 1L;
         Event event = Event.builder().id(eventId).name("Koncert Rockowy").build();
         User user1 = User.builder().id(1L).firstName("Jan").lastName("Kowalski").build();
@@ -75,10 +74,8 @@ public class GetEventSummaryTest {
         doNothing().when(reviewValidation).checkIfReviewsListEmpty(reviews);
 
 
-        // When
         ReviewSummaryDTO summary = reviewService.getEventReviewSummary(eventId);
 
-        // Then
         assertNotNull(summary);
         assertEquals(eventId, summary.eventId());
         assertEquals("Koncert Rockowy", summary.eventName());
@@ -93,7 +90,6 @@ public class GetEventSummaryTest {
     @Test
     @DisplayName("Should throw ReviewsNotFoundException when no reviews are found for the event")
     void getEventReviewSummary_shouldThrowException_whenNoReviewsFound() {
-        // Given
         Long eventId = 2L;
         Event event = Event.builder().id(eventId).name("Empty Event").build();
         List<Review> emptyReviews = Collections.emptyList();
@@ -103,7 +99,6 @@ public class GetEventSummaryTest {
                 .when(reviewValidation).checkIfReviewsListEmpty(emptyReviews);
 
 
-        // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> reviewService.getEventReviewSummary(eventId));
 
         assertEquals("No reviews summary found for event with id: " + eventId, exception.getMessage());
@@ -117,7 +112,6 @@ public class GetEventSummaryTest {
     @Test
     @DisplayName("Should correctly calculate average rating for a single review")
     void getEventReviewSummary_shouldCalculateAverageCorrectly_forSingleReview() {
-        // Given
         Long eventId = 4L;
         Event event = Event.builder().id(eventId).name("Wystawa Sztuki").build();
         User user = User.builder().id(3L).firstName("Piotr").lastName("Zieliński").build();
@@ -131,10 +125,8 @@ public class GetEventSummaryTest {
         when(reviewMapper.toDTO(review)).thenReturn(reviewDTO);
         doNothing().when(reviewValidation).checkIfReviewsListEmpty(reviews);
 
-        // When
         ReviewSummaryDTO summary = reviewService.getEventReviewSummary(eventId);
 
-        // Then
         assertNotNull(summary);
         assertEquals(1, summary.totalReviews());
         assertEquals(10.0, summary.averageRating());
@@ -147,14 +139,12 @@ public class GetEventSummaryTest {
     @Test
     @DisplayName("Should throw ReviewsNotFoundException when reviews list is null")
     void getEventReviewSummary_shouldThrowException_whenReviewsListIsNull() {
-        // Given
         Long eventId = 5L;
 
         when(reviewRepository.findByEventId(eventId)).thenReturn(null);
         doThrow(new ReviewsNotFoundException("No reviews summary found for event with id: " + eventId))
                 .when(reviewValidation).checkIfReviewsListEmpty(null);
 
-        // When & Then
         ReviewsNotFoundException exception = assertThrows(ReviewsNotFoundException.class, () -> reviewService.getEventReviewSummary(eventId));
 
         assertEquals("No reviews summary found for event with id: " + eventId, exception.getMessage());
@@ -166,7 +156,6 @@ public class GetEventSummaryTest {
     @Test
     @DisplayName("Should correctly calculate average rating for multiple reviews with different ratings")
     void getEventReviewSummary_shouldCalculateAverageCorrectly_forMultipleReviews() {
-        // Given
         Long eventId = 6L;
         Event event = Event.builder().id(eventId).name("Festival").build();
 
@@ -185,10 +174,8 @@ public class GetEventSummaryTest {
         when(reviewMapper.toDTO(review3)).thenReturn(dto3);
         doNothing().when(reviewValidation).checkIfReviewsListEmpty(reviews);
 
-        // When
         ReviewSummaryDTO summary = reviewService.getEventReviewSummary(eventId);
 
-        // Then
         assertNotNull(summary);
         assertEquals(3, summary.totalReviews());
         assertEquals(8.0, summary.averageRating());

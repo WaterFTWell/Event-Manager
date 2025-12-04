@@ -94,7 +94,6 @@ public class ReviewIntegrationTest {
         testVenue = createAndSaveVenue("Test Venue");
         testEvent = createAndSaveEvent("Test Event", testUser, testCategory, testVenue);
 
-        // jwt dla usera testowego
         testUserToken = jwtUtil.generateToken(testUser);
     }
 

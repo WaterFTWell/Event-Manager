@@ -128,11 +128,9 @@ public class InterestedIntegrationTest {
     @Test
     @DisplayName("Should remove from interested list (second click)")
     void shouldRemoveFromInterested() throws Exception {
-        //dodajemy zeby miec co usunac
         mockMvc.perform(post("/api/interested/" + testEvent.getId())
                 .header("Authorization", "Bearer " + token));
 
-        //drugie klikniecie powinno usunac
         mockMvc.perform(post("/api/interested/" + testEvent.getId())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -142,13 +140,11 @@ public class InterestedIntegrationTest {
     @Test
     @DisplayName("Should return list of interested events")
     void shouldReturnMyInterests() throws Exception {
-        //dodajemy event do ulubionych
         mockMvc.perform(post("/api/interested/" + testEvent.getId())
                 .header("Authorization", "Bearer " + token));
         mockMvc.perform(post("/api/interested/" + testEvent2.getId())
                 .header("Authorization", "Bearer " + token));
 
-        //sprawdzamy czy jest na liscie
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -164,21 +160,17 @@ public class InterestedIntegrationTest {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        //upewniamy że jest na liscie
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)));
 
-        //wymuszamy czyszczenie kontekstu
         entityManager.clear();
-        //usuwamy wydarzenie z bazy
         eventRepository.deleteById(testEvent.getId());
 
         entityManager.flush();
 
 
-        //sprawdzamy listę zainteresowań, powinno usunac sie casscodowo
         mockMvc.perform(get("/api/interested")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

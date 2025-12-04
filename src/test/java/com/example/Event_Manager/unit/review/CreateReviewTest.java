@@ -54,7 +54,6 @@ public class CreateReviewTest {
     @Test
     @DisplayName("Should create review successfully with valid data")
     void createReview_shouldSucceed_whenDataIsValid() {
-        // Given
         Long userId = 1L;
         Long eventId = 1L;
         Long categoryId = 1L;
@@ -75,10 +74,8 @@ public class CreateReviewTest {
         when(reviewRepository.save(reviewToSave)).thenReturn(savedReview);
         when(reviewMapper.toDTO(savedReview)).thenReturn(expectedDTO);
 
-        // When
         ReviewDTO result = reviewService.createReview(createDTO, user);
 
-        // Then
         assertNotNull(result, "Returned DTO should not be null.");
         assertEquals(expectedDTO.id(), result.id());
         assertEquals(expectedDTO.rating(), result.rating());
@@ -94,7 +91,6 @@ public class CreateReviewTest {
     @Test
     @DisplayName("Should throw exception when event does not exist")
     void createReview_shouldThrowException_whenEventNotFound() {
-        // Given
         Long userId = 1L;
         Long nonExistentEventId = 99L;
         Long categoryId = 1L;
@@ -102,7 +98,6 @@ public class CreateReviewTest {
         User user = User.builder().id(userId).firstName("Jan").lastName("Kowalski").build();
         when(eventRepository.findById(nonExistentEventId)).thenReturn(Optional.empty());
 
-        // When & Then
         EventNotFoundException exception = assertThrows(EventNotFoundException.class, () -> {
             reviewService.createReview(createDTO, user);
         }, "Should throw EventNotFoundException.");
@@ -116,7 +111,6 @@ public class CreateReviewTest {
     @Test
     @DisplayName("Should create review successfully with null comment")
     void createReview_shouldSucceed_whenCommentIsNull() {
-        // Given
         Long userId = 1L;
         Long eventId = 1L;
         Long categoryId = 1L;
@@ -133,10 +127,8 @@ public class CreateReviewTest {
         when(reviewRepository.save(reviewToSave)).thenReturn(savedReview);
         when(reviewMapper.toDTO(savedReview)).thenReturn(expectedDTO);
 
-        // When
         ReviewDTO result = reviewService.createReview(createDTO, user);
 
-        // Then
         assertNotNull(result, "Returned DTO should not be null.");
         assertNull(result.comment(), "Comment in the returned DTO should be null.");
         assertEquals(expectedDTO.id(), result.id());

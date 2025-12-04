@@ -178,7 +178,6 @@ public class EventIntegrationTest {
                             .content(json))
                     .andExpect(MockMvcResultMatchers.status().isCreated());
         }
-        // 1strona
         mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
                         .param("page", "0")
                         .param("size", "2"))
@@ -193,7 +192,6 @@ public class EventIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.first").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.last").value(false));
 
-        // 2strona
         mockMvc.perform(MockMvcRequestBuilders.get("/api/events")
                         .param("page", "1")
                         .param("size", "2"))
@@ -353,7 +351,6 @@ public class EventIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-        // default podejscie
         mockMvc.perform(MockMvcRequestBuilders.get("/api/events"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.size").value(10))

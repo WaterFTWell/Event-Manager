@@ -24,24 +24,19 @@ public class DeleteUserTest {
     @Test
     @DisplayName("Should delete user successfully when user exists")
     void deleteUser_Success() {
-        //Given
         Long userId = 1L;
         when(userRepository.existsById(userId)).thenReturn(true);
 
-        //When
         userService.deleteUser(userId);
-        //Then
         verify(userRepository).deleteById(userId);
     }
 
     @Test
     @DisplayName("Should throw UserNotFoundException when deleting nonexistent user")
     void deleteUser_NotFound_ThrowsException() {
-        //Given
         Long userId = 999L;
         when(userRepository.existsById(userId)).thenReturn(false);
 
-        //Then
         assertThrows(UserNotFoundException.class, () -> userService.deleteUser(userId));
         verify(userRepository, never()).deleteById(any());
     }

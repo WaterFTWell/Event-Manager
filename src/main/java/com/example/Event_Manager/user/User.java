@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 
-//builder broken i imo worth
 @Builder
 @Entity
 @Data

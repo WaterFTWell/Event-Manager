@@ -31,8 +31,6 @@ public class UpdateCategoryTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-//    @Mock
-//    private CategoryValidation categoryValidation;
 
     @InjectMocks
     private CategoryService categoryService;
@@ -51,7 +49,6 @@ public class UpdateCategoryTest {
     @Test
     @DisplayName("Should update category successfully with valid and unique data")
     void updateCategory_shouldSucceed_whenDataIsUniqueAndValid() {
-        // Given
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO("Nowa Nazwa", "Nowy opis");
         Category updatedCategory = Category.builder()
@@ -66,10 +63,8 @@ public class UpdateCategoryTest {
         when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
-        // When
         CategoryDTO result = categoryService.updateCategory(categoryId, updateDTO);
 
-        // Then
         assertNotNull(result);
         assertEquals(expectedDTO, result);
 
@@ -83,7 +78,6 @@ public class UpdateCategoryTest {
     @Test
     @DisplayName("Should update category description while keeping the same name")
     void updateCategory_shouldSucceed_whenOnlyDescriptionChanges() {
-        // Given
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(existingCategory.getName(), "Zaktualizowany opis");
         Category updatedCategory = Category.builder()
@@ -98,10 +92,8 @@ public class UpdateCategoryTest {
         when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
-        // When
         CategoryDTO result = categoryService.updateCategory(categoryId, updateDTO);
 
-        // Then
         assertNotNull(result);
         assertEquals(expectedDTO, result);
 
@@ -114,12 +106,10 @@ public class UpdateCategoryTest {
     @Test
     @DisplayName("Should throw CategoryNotFoundException when trying to update non-existent category")
     void updateCategory_shouldThrowException_whenCategoryDoesNotExist() {
-        // Given
         Long nonExistentId = 99L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO("Nazwa", "Opis");
         when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // When & Then
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () ->
                 categoryService.updateCategory(nonExistentId, updateDTO));
 
@@ -132,7 +122,6 @@ public class UpdateCategoryTest {
     @Test
     @DisplayName("Should throw CategoryAlreadyExistsException when new name is taken by another category")
     void updateCategory_shouldThrowException_whenNameIsTakenByAnotherCategory() {
-        // Given
         Long categoryIdToUpdate = 1L;
         String newName = "Zajęta Nazwa";
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(newName, "Opis");
@@ -144,7 +133,6 @@ public class UpdateCategoryTest {
         when(categoryRepository.findById(categoryIdToUpdate)).thenReturn(Optional.of(existingCategory));
         when(categoryRepository.findCategoryByName(newName)).thenReturn(Optional.of(otherCategory));
 
-        // When & Then
         CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () ->
                 categoryService.updateCategory(categoryIdToUpdate, updateDTO));
 

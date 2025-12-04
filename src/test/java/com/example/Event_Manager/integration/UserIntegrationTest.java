@@ -61,7 +61,6 @@ public class UserIntegrationTest {
     void setup() {
         userRepository.deleteAll();
 
-        //zwykły użytkownik
         attendee = User.builder()
                 .firstName("Marek")
                 .lastName("Mostowiak")
@@ -74,7 +73,6 @@ public class UserIntegrationTest {
         userRepository.save(attendee);
         attendeeToken = jwtUtil.generateToken(attendee);
 
-        //Admin
         admin = User.builder()
                 .firstName("Admin")
                 .lastName("Boss")
@@ -118,7 +116,6 @@ public class UserIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        //weryfikacja czy hasło się zmieniło w bazie
         User updatedUser = userRepository.findById(attendee.getId()).get();
         assertTrue(passwordEncoder.matches("noweHaslo123", updatedUser.getPassword()));
     }
@@ -137,11 +134,9 @@ public class UserIntegrationTest {
 
     @Test
     void deleteUser_ShouldSucceed_WhenAdminDeletes() throws Exception {
-        //Usuwamy zwyklego usera
         mockMvc.perform(delete("/api/users/" + attendee.getId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
-        //zeby hibarnate zaktualizowal stan bazy i pobrał go na nowo, bo jest zapamietany w sesji
         entityManager.flush();
         entityManager.clear();
 
