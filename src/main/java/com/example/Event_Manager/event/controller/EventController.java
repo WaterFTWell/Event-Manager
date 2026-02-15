@@ -40,7 +40,7 @@ public class EventController implements EventApi {
     @PutMapping("/{id}")
     @IsOrganizer
     public ResponseEntity<EventDTO> updateEvent(
-            @PathVariable("id") @Positive(message = "Id should be positive") Long id,
+            @PathVariable @Positive(message = "Id should be positive") Long id,
             @Valid @RequestBody UpdateEventDTO updateEventDTO
     ) {
         return ResponseEntity.ok(eventService.updateEvent(id, updateEventDTO));
@@ -49,7 +49,7 @@ public class EventController implements EventApi {
     @DeleteMapping("/{id}")
     @IsOrganizer
     public ResponseEntity<Void> deleteEvent(
-            @PathVariable("id") @Positive(message = "Id should be positive") Long id
+            @PathVariable @Positive(message = "Id should be positive") Long id
     ) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
@@ -57,7 +57,7 @@ public class EventController implements EventApi {
 
     @GetMapping("/{id}")
     public ResponseEntity<EventDTO> getEventById(
-            @PathVariable("id") @Positive(message = "Id should be positive") Long id
+            @PathVariable @Positive(message = "Id should be positive") Long id
     ) {
         return ResponseEntity.ok(eventService.getEventById(id));
     }
@@ -71,7 +71,7 @@ public class EventController implements EventApi {
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<Page<EventDTO>> getEventsByCategory(
-            @PathVariable("categoryId") @Positive(message = "Id should be positive") Long categoryId,
+            @PathVariable @Positive(message = "Id should be positive") Long categoryId,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
         return ResponseEntity.ok(eventService.getEventsByCategory(categoryId, pageable));
@@ -79,7 +79,7 @@ public class EventController implements EventApi {
 
     @GetMapping("/venue/{venueId}")
     public ResponseEntity<Page<EventDTO>> getEventsByVenue(
-            @PathVariable("venueId") @Positive(message = "Id should be positive") Long venueId,
+            @PathVariable @Positive(message = "Id should be positive") Long venueId,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
         return ResponseEntity.ok(eventService.getEventsByVenue(venueId, pageable));
@@ -104,7 +104,7 @@ public class EventController implements EventApi {
 
     @GetMapping("/organizer/{organizerId}")
     public ResponseEntity<Page<EventDTO>> getEventsByOrganizer(
-            @PathVariable("organizerId") @Positive(message = "Id should be positive") Long organizerId,
+            @PathVariable @Positive(message = "Id should be positive") Long organizerId,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
         return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerId, pageable));
@@ -112,7 +112,7 @@ public class EventController implements EventApi {
 
     @GetMapping("/{eventId}/summary")
     public ResponseEntity<EventSummaryDTO> getEventSummary(
-            @PathVariable("eventId") @Positive(message = "Id should be positive") Long eventId
+            @PathVariable @Positive(message = "Id should be positive") Long eventId
     ) {
         return ResponseEntity.ok(eventService.getEventSummary(eventId));
     }

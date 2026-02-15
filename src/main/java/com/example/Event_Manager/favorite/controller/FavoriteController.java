@@ -27,7 +27,7 @@ public class FavoriteController {
     @PostMapping("/{organizerId}")
     @IsAttendee
     public ResponseEntity<String> toggleFavorite(
-            @PathVariable("organizerId") @Positive(message = "Id should be positive") Long organizerId,
+            @PathVariable @Positive(message = "Id should be positive") Long organizerId,
             @AuthenticationPrincipal User user
     ) {
         String result = favoriteService.toggleFavorite(user.getId(), organizerId);

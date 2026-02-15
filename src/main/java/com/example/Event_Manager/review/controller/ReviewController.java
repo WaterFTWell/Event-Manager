@@ -41,7 +41,7 @@ public class ReviewController implements ReviewApi {
     @PutMapping("/{reviewId}")
     @IsAttendee
     public ResponseEntity<ReviewDTO> updateReview(
-            @PathVariable("reviewId") @Positive(message = "Id should be positive") Long reviewId,
+            @PathVariable @Positive(message = "Id should be positive") Long reviewId,
             @Valid @RequestBody UpdateReviewDTO updateReviewDTO,
             @AuthenticationPrincipal User user
     ) {
@@ -53,7 +53,7 @@ public class ReviewController implements ReviewApi {
     @DeleteMapping("/{reviewId}")
     @IsAttendee
     public ResponseEntity<Void> deleteReview(
-            @PathVariable("reviewId") @Positive(message = "Id should be positive") Long reviewId,
+            @PathVariable @Positive(message = "Id should be positive") Long reviewId,
             @AuthenticationPrincipal User user
     ) {
         reviewService.deleteReview(reviewId, user);
@@ -62,7 +62,7 @@ public class ReviewController implements ReviewApi {
 
     @GetMapping("/event/{eventId}")
     public ResponseEntity<Page<ReviewDTO>> getReviewsForEvent(
-            @PathVariable("eventId") @Positive(message = "Id should be positive") Long eventId,
+            @PathVariable @Positive(message = "Id should be positive") Long eventId,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
         Page<ReviewDTO> response = reviewService.getReviewsForEvent(eventId, pageable);
@@ -71,7 +71,7 @@ public class ReviewController implements ReviewApi {
 
     @GetMapping("/event/{eventId}/summary")
     public ResponseEntity<ReviewSummaryDTO> getEventReviewSummary(
-            @PathVariable("eventId") @Positive(message = "Id should be positive") Long eventId
+            @PathVariable @Positive(message = "Id should be positive") Long eventId
     ) {
         ReviewSummaryDTO response = reviewService.getEventReviewSummary(eventId);
         return ResponseEntity.ok(response);
