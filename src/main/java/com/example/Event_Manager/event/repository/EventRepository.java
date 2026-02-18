@@ -1,10 +1,13 @@
 package com.example.Event_Manager.event.repository;
 
 import com.example.Event_Manager.event.Event;
+import io.micrometer.common.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -14,8 +17,9 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
-    Page<Event> findAll(Pageable pageable);
+    @EntityGraph(attributePaths = {"category", "venue", "venue.city"})
+    @NonNull
+    Page<Event> findAll(@NonNull Pageable pageable);
 
     @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
     Optional<Event> findEventById(Long eventId);
@@ -29,12 +33,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
     Page<Event> findByStartTimeBetween(Date startDate, Date endDate, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
+    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city"})
     Page<Event> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
+    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city"})
     Page<Event> findByOrganizer_Id(Long organizerId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city", "venue.city.country"})
-    Page<Event> findByOrganizerFullNameContainingIgnoreCase(String organizerName, Pageable pageable);
+    @EntityGraph(attributePaths = {"organizer", "category", "venue", "venue.city"})
+    @Query("SELECT e FROM Event e WHERE " +
+            "LOWER(CONCAT(e.organizer.firstName, ' ', e.organizer.lastName)) LIKE LOWER(CONCAT('%', :organizerName, '%'))")
+    Page<Event> findByOrganizerFullNameContainingIgnoreCase(@Param("organizerName") String organizerName, Pageable pageable);
 }
