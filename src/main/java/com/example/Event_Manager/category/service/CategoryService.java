@@ -9,6 +9,8 @@ import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.category.exceptions.InvalidCategoryException;
 import com.example.Event_Manager.category.mapper.CategoryMapper;
 import com.example.Event_Manager.category.repository.CategoryRepository;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,7 +30,7 @@ public class CategoryService implements ICategoryService {
 
     @Override
     @Transactional
-    public CategoryDTO createCategory(CreateCategoryDTO createCategoryDTO) {
+    public CategoryDTO createCategory(@NonNull CreateCategoryDTO createCategoryDTO) {
 
         String trimmedName = validateAndTrimName(createCategoryDTO.name());
         checkForDuplicateCategoryName(trimmedName, null);
@@ -41,7 +43,7 @@ public class CategoryService implements ICategoryService {
 
     @Override
     @Transactional
-    public CategoryDTO updateCategory(Long categoryId, UpdateCategoryDTO updateCategoryDTO) {
+    public CategoryDTO updateCategory(Long categoryId, @NonNull UpdateCategoryDTO updateCategoryDTO) {
 
         Category categoryToUpdate = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryId + " not found."));
@@ -88,7 +90,8 @@ public class CategoryService implements ICategoryService {
         }
     }
 
-    private String validateAndTrimName(String rawName) {
+    @Contract("null -> fail")
+    private @NonNull String validateAndTrimName(String rawName) {
         if (rawName == null) {
             throw new InvalidCategoryException("Category name cannot be null.");
         }
