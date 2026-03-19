@@ -25,10 +25,10 @@ public class Category {
     @Column(nullable = false, unique = true, name = "name")
     private String name;
 
-    @Column(nullable = false, length = 500, name = "description", columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "category", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private Set<Event> events;
 

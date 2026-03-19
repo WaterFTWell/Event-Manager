@@ -36,7 +36,7 @@ public interface CategoryApi {
             @ApiResponse(responseCode = "409", description = "Another category with this name already exists")
     })
     ResponseEntity<CategoryDTO> updateCategory(
-            @Positive(message = "Id should be positive") Long id,
+            @Positive(message = "ID should be positive") Long id,
             @Valid UpdateCategoryDTO updateCategoryDTO);
 
     @Operation(summary = "Delete a category",
@@ -47,7 +47,7 @@ public interface CategoryApi {
             @ApiResponse(responseCode = "404", description = "Category not found")
     })
     ResponseEntity<Void> deleteCategory(
-            @Positive(message = "Id should be positive") Long id
+            @Positive(message = "ID should be positive") Long id
     );
 
     @Operation(summary = "Get category by ID",
@@ -58,7 +58,7 @@ public interface CategoryApi {
             @ApiResponse(responseCode = "404", description = "Category not found or does not exist")
     })
     ResponseEntity<CategoryDTO> getCategoryById(
-            @Positive(message = "Id should be positive") Long id
+            @Positive(message = "ID should be positive") Long id
     );
 
     @Operation(summary = "Get all categories",

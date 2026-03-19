@@ -32,6 +32,7 @@ public class CreateCategoryTest {
     @InjectMocks
     private CategoryService categoryService;
 
+
     @Test
     @DisplayName("Should create category successfully with valid data")
     void createCategory_shouldSucceed_whenDataIsValid() {
@@ -40,9 +41,9 @@ public class CreateCategoryTest {
         Category savedCategory = Category.builder().id(1L).name(createDTO.name()).description(createDTO.description()).build();
         CategoryDTO expectedDTO = new CategoryDTO(1L, createDTO.name(), createDTO.description());
 
-        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.empty());
-        when(categoryMapper.toEntity(createDTO)).thenReturn(categoryToSave);
-        when(categoryRepository.save(categoryToSave)).thenReturn(savedCategory);
+        when(categoryRepository.findCategoryByNameIgnoreCase(createDTO.name())).thenReturn(Optional.empty());
+        when(categoryMapper.toEntityWithTrimmedName(any(CreateCategoryDTO.class), anyString())).thenReturn(categoryToSave);
+        when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
         when(categoryMapper.toDTO(savedCategory)).thenReturn(expectedDTO);
 
         CategoryDTO result = categoryService.createCategory(createDTO);
@@ -51,8 +52,8 @@ public class CreateCategoryTest {
         assertEquals(expectedDTO.id(), result.id());
         assertEquals(expectedDTO.name(), result.name());
 
-        verify(categoryRepository).findCategoryByName(createDTO.name());
-        verify(categoryRepository).save(categoryToSave);
+        verify(categoryRepository).findCategoryByNameIgnoreCase(createDTO.name());
+        verify(categoryRepository).save(any(Category.class));
         verify(categoryMapper).toDTO(savedCategory);
     }
 
@@ -62,14 +63,14 @@ public class CreateCategoryTest {
         CreateCategoryDTO createDTO = new CreateCategoryDTO("Sport", "Wydarzenia sportowe.");
         Category existingCategory = Category.builder().id(1L).name(createDTO.name()).description(createDTO.description()).build();
 
-        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.ofNullable(existingCategory));
+        when(categoryRepository.findCategoryByNameIgnoreCase(createDTO.name())).thenReturn(Optional.of(existingCategory));
 
         CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () -> categoryService.createCategory(createDTO), "Powinien zostać rzucony wyjątek o istniejącej nazwie kategorii.");
 
         assertEquals("Category with this name already exists.", exception.getMessage());
 
         verify(categoryRepository, never()).save(any(Category.class));
-        verify(categoryRepository).findCategoryByName(createDTO.name());
+        verify(categoryRepository).findCategoryByNameIgnoreCase(createDTO.name());
     }
 
     @Test
@@ -81,9 +82,9 @@ public class CreateCategoryTest {
         Category savedCategory = Category.builder().id(1L).name("Długi Opis").description(longDescription).build();
         CategoryDTO expectedDTO = new CategoryDTO(1L, "Długi Opis", longDescription);
 
-        when(categoryRepository.findCategoryByName(createDTO.name())).thenReturn(Optional.empty());
-        when(categoryMapper.toEntity(createDTO)).thenReturn(categoryToSave);
-        when(categoryRepository.save(categoryToSave)).thenReturn(savedCategory);
+        when(categoryRepository.findCategoryByNameIgnoreCase(createDTO.name())).thenReturn(Optional.empty());
+        when(categoryMapper.toEntityWithTrimmedName(any(CreateCategoryDTO.class), anyString())).thenReturn(categoryToSave);
+        when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
         when(categoryMapper.toDTO(savedCategory)).thenReturn(expectedDTO);
 
         CategoryDTO result = categoryService.createCategory(createDTO);

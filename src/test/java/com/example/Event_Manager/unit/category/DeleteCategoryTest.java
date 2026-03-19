@@ -28,28 +28,20 @@ public class DeleteCategoryTest {
     @DisplayName("Should delete category successfully when it exists")
     void deleteCategory_shouldSucceed_whenCategoryExists() {
         Long categoryId = 1L;
-        when(categoryRepository.existsById(categoryId)).thenReturn(true);
-        doNothing().when(categoryRepository).deleteById(categoryId);
+        when(categoryRepository.deleteCategoryById(categoryId)).thenReturn(1);
 
         categoryService.deleteCategory(categoryId);
 
-        verify(categoryRepository, times(1)).existsById(categoryId);
-        verify(categoryRepository, times(1)).deleteById(categoryId);
+        verify(categoryRepository, times(1)).deleteCategoryById(categoryId);
     }
 
     @Test
     @DisplayName("Should throw CategoryNotFoundException when trying to delete a non-existent category")
     void deleteCategory_shouldThrowException_whenCategoryDoesNotExist() {
         Long nonExistentId = 99L;
-        when(categoryRepository.existsById(nonExistentId)).thenReturn(false);
+        when(categoryRepository.deleteCategoryById(nonExistentId)).thenReturn(0);
 
-        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
-            categoryService.deleteCategory(nonExistentId);
-        });
-
-        assertEquals("Category with this id is not in database.", exception.getMessage());
-
-        verify(categoryRepository).existsById(nonExistentId);
-        verify(categoryRepository, never()).deleteById(nonExistentId);
+        assertThrows(CategoryNotFoundException.class,
+                () -> categoryService.deleteCategory(nonExistentId));
     }
 }

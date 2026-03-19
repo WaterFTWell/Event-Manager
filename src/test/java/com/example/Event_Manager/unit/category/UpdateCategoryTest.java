@@ -59,7 +59,7 @@ public class UpdateCategoryTest {
         CategoryDTO expectedDTO = new CategoryDTO(categoryId, updateDTO.name(), updateDTO.description());
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByName(updateDTO.name())).thenReturn(Optional.empty());
+        when(categoryRepository.findCategoryByNameIgnoreCase(updateDTO.name())).thenReturn(Optional.empty());
         when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
@@ -69,8 +69,7 @@ public class UpdateCategoryTest {
         assertEquals(expectedDTO, result);
 
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).findCategoryByName(updateDTO.name());
-        verify(categoryMapper).updateEntity(existingCategory, updateDTO);
+        verify(categoryRepository).findCategoryByNameIgnoreCase(updateDTO.name());
         verify(categoryRepository).save(existingCategory);
         verify(categoryMapper).toDTO(updatedCategory);
     }
@@ -88,7 +87,7 @@ public class UpdateCategoryTest {
         CategoryDTO expectedDTO = new CategoryDTO(categoryId, existingCategory.getName(), updateDTO.description());
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByName(updateDTO.name())).thenReturn(Optional.of(existingCategory));
+        when(categoryRepository.findCategoryByNameIgnoreCase(updateDTO.name())).thenReturn(Optional.of(existingCategory));
         when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
@@ -98,7 +97,7 @@ public class UpdateCategoryTest {
         assertEquals(expectedDTO, result);
 
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).findCategoryByName(updateDTO.name());
+        verify(categoryRepository).findCategoryByNameIgnoreCase(updateDTO.name());
         verify(categoryRepository).save(existingCategory);
         verify(categoryMapper).toDTO(updatedCategory);
     }
@@ -113,9 +112,9 @@ public class UpdateCategoryTest {
         CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () ->
                 categoryService.updateCategory(nonExistentId, updateDTO));
 
-        assertEquals("Category with this id is not in database.", exception.getMessage());
+        assertEquals("Category with ID 99 not found.", exception.getMessage());
         verify(categoryRepository).findById(nonExistentId);
-        verify(categoryRepository, never()).findCategoryByName(any());
+        verify(categoryRepository, never()).findCategoryByNameIgnoreCase(any());
         verify(categoryRepository, never()).save(any());
     }
 
@@ -131,15 +130,14 @@ public class UpdateCategoryTest {
                 .build();
 
         when(categoryRepository.findById(categoryIdToUpdate)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByName(newName)).thenReturn(Optional.of(otherCategory));
+        when(categoryRepository.findCategoryByNameIgnoreCase(newName)).thenReturn(Optional.of(otherCategory));
 
         CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () ->
                 categoryService.updateCategory(categoryIdToUpdate, updateDTO));
 
         assertEquals("Category with this name already exists.", exception.getMessage());
         verify(categoryRepository).findById(categoryIdToUpdate);
-        verify(categoryRepository).findCategoryByName(newName);
-        verify(categoryMapper, never()).updateEntity(any(), any());
+        verify(categoryRepository).findCategoryByNameIgnoreCase(newName);
         verify(categoryRepository, never()).save(any());
     }
 }

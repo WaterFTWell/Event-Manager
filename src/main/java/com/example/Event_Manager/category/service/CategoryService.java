@@ -4,17 +4,18 @@ import com.example.Event_Manager.category.Category;
 import com.example.Event_Manager.category.dto.request.CreateCategoryDTO;
 import com.example.Event_Manager.category.dto.request.UpdateCategoryDTO;
 import com.example.Event_Manager.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.category.exceptions.CategoriesNotFoundException;
 import com.example.Event_Manager.category.exceptions.CategoryAlreadyExistsException;
 import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
+import com.example.Event_Manager.category.exceptions.InvalidCategoryException;
 import com.example.Event_Manager.category.mapper.CategoryMapper;
 import com.example.Event_Manager.category.repository.CategoryRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -29,12 +30,10 @@ public class CategoryService implements ICategoryService {
     @Transactional
     public CategoryDTO createCategory(CreateCategoryDTO createCategoryDTO) {
 
-        Optional<Category> existingCategory = categoryRepository.findCategoryByName(createCategoryDTO.name());
-        if (existingCategory.isPresent()) {
-            throw new CategoryAlreadyExistsException("Category with this name already exists.");
-        }
+        String trimmedName = validateAndTrimName(createCategoryDTO.name());
+        checkForDuplicateCategoryName(trimmedName, null);
 
-        Category category = categoryMapper.toEntity(createCategoryDTO);
+        Category category = categoryMapper.toEntityWithTrimmedName(createCategoryDTO, trimmedName);
         Category savedCategory = categoryRepository.save(category);
 
         return categoryMapper.toDTO(savedCategory);
@@ -45,42 +44,58 @@ public class CategoryService implements ICategoryService {
     public CategoryDTO updateCategory(Long categoryId, UpdateCategoryDTO updateCategoryDTO) {
 
         Category categoryToUpdate = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category with this id is not in database."));
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryId + " not found."));
 
-        Optional<Category> categoryWithSameName = categoryRepository.findCategoryByName(updateCategoryDTO.name());
-        if (categoryWithSameName.isPresent() && !categoryWithSameName.get().getId().equals(categoryId)) {
-            throw new CategoryAlreadyExistsException("Category with this name already exists.");
-        }
+        String trimmedName = validateAndTrimName(updateCategoryDTO.name());
+        checkForDuplicateCategoryName(trimmedName, categoryId);
 
-        categoryMapper.updateEntity(categoryToUpdate, updateCategoryDTO);
-        Category updatedCategory = categoryRepository.save(categoryToUpdate);
+        categoryMapper.updateEntityWithTrimmedName(categoryToUpdate, updateCategoryDTO, trimmedName);
+        Category savedCategory = categoryRepository.save(categoryToUpdate);
 
-        return categoryMapper.toDTO(updatedCategory);
+        return categoryMapper.toDTO(savedCategory);
     }
 
     @Override
     @Transactional
     public void deleteCategory(Long categoryId) {
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new CategoryNotFoundException("Category with this id is not in database.");
+        int deletedCount = categoryRepository.deleteCategoryById(categoryId);
+        if (deletedCount == 0) {
+            throw new CategoryNotFoundException("Category with ID " + categoryId + " not found.");
         }
-        categoryRepository.deleteById(categoryId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryDTO getCategoryById(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found in database."));
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + categoryId + " not found."));
 
         return categoryMapper.toDTO(category);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CategoryDTO> getAllCategories(Pageable pageable) {
         Page<Category> categories = categoryRepository.findAll(pageable);
-        if (categories.isEmpty()) {
-            throw new CategoriesNotFoundException("No categories found in database.");
-        }
         return categories.map(categoryMapper::toDTO);
+    }
+
+    // TODO:: wydzielic to do innej klasy np CategoryValidator
+    private void checkForDuplicateCategoryName(String name, Long currentCategoryId) {
+        Optional<Category> categoryWithSameName = categoryRepository.findCategoryByNameIgnoreCase(name);
+        if (categoryWithSameName.isPresent() && !Objects.equals(currentCategoryId, categoryWithSameName.get().getId())) {
+            throw new CategoryAlreadyExistsException("Category with this name already exists.");
+        }
+    }
+
+    private String validateAndTrimName(String rawName) {
+        if (rawName == null) {
+            throw new InvalidCategoryException("Category name cannot be null.");
+        }
+        String trimmed = rawName.trim();
+        if (trimmed.isEmpty()) {
+            throw new InvalidCategoryException("Category name cannot be empty or whitespace only.");
+        }
+        return trimmed;
     }
 }

@@ -35,7 +35,7 @@ public class CategoryController implements CategoryApi {
     @PutMapping("/{id}")
     @IsAdmin
     public ResponseEntity<CategoryDTO> updateCategory(
-            @PathVariable @Positive(message = "Id should be positive") Long id,
+            @PathVariable @Positive(message = "ID should be positive") Long id,
             @Valid @RequestBody UpdateCategoryDTO updateCategoryDTO
     ) {
         return ResponseEntity.ok(categoryService.updateCategory(id, updateCategoryDTO));
@@ -44,7 +44,7 @@ public class CategoryController implements CategoryApi {
     @DeleteMapping("/{id}")
     @IsAdmin
     public ResponseEntity<Void> deleteCategory(
-            @PathVariable @Positive(message = "Id should be positive") Long id
+            @PathVariable @Positive(message = "ID should be positive") Long id
     ) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
@@ -52,7 +52,7 @@ public class CategoryController implements CategoryApi {
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDTO> getCategoryById(
-            @PathVariable @Positive(message = "Id should be positive") Long id
+            @PathVariable @Positive(message = "ID should be positive") Long id
     ) {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }

@@ -2,7 +2,6 @@ package com.example.Event_Manager.unit.category;
 
 import com.example.Event_Manager.category.Category;
 import com.example.Event_Manager.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.category.exceptions.CategoriesNotFoundException;
 import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.category.mapper.CategoryMapper;
 import com.example.Event_Manager.category.repository.CategoryRepository;
@@ -75,9 +74,10 @@ public class GetCategoryTest {
         Long nonExistentId = 99L;
         when(categoryRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> categoryService.getCategoryById(nonExistentId));
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class,
+                () -> categoryService.getCategoryById(nonExistentId));
 
-        assertEquals("Category not found in database.", exception.getMessage());
+        assertEquals("Category with ID " + nonExistentId + " not found.", exception.getMessage());
         verify(categoryRepository).findById(nonExistentId);
         verify(categoryMapper, never()).toDTO(any());
     }
@@ -160,16 +160,20 @@ public class GetCategoryTest {
     }
 
     @Test
-    @DisplayName("getAllCategories: Should throw CategoryNotFoundException when no categories are in the database")
-    void getAllCategories_shouldThrowException_whenNoCategoriesExist() {
+    @DisplayName("getAllCategories: Should return empty page when no categories are in the database")
+    void getAllCategories_shouldReturnEmptyPage_whenNoCategoriesExist() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Category> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(categoryRepository.findAll(pageable)).thenReturn(emptyPage);
 
-        CategoriesNotFoundException exception = assertThrows(CategoriesNotFoundException.class, () -> categoryService.getAllCategories(pageable));
+        Page<CategoryDTO> result = categoryService.getAllCategories(pageable);
 
-        assertEquals("No categories found in database.", exception.getMessage());
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+
         verify(categoryRepository).findAll(pageable);
         verify(categoryMapper, never()).toDTO(any());
     }

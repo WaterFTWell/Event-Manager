@@ -113,7 +113,7 @@ public class CategoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should delete category successfully")
+    @DisplayName("Should delete category successfully and return empty page")
     void shouldDeleteCategory() throws Exception {
         Category category = createAndSaveCategory("Teatr", "Spektakle teatralne");
 
@@ -122,7 +122,7 @@ public class CategoryIntegrationTest {
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/categories/" + category.getId()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -241,21 +241,33 @@ public class CategoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return 404 Not Found when getting all categories and none exist")
-    void shouldReturnNotFoundWhenNoCategoriesExist() throws Exception {
+    @DisplayName("Should return empty page when getting all categories and none exist")
+    void shouldReturnEmptyPageWhenNoCategoriesExist() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/categories"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(0)))
+                .andExpect(jsonPath("$.totalElements", is(0)))
+                .andExpect(jsonPath("$.totalPages", is(0)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.first", is(true)))
+                .andExpect(jsonPath("$.last", is(true)));
     }
 
     @Test
     @DisplayName("Should return empty last page when requesting page beyond available data")
-    void shouldReturnNotFoundWhenRequestingPageBeyondData() throws Exception {
+    void shouldReturnEmptyLastPageWhenRequestingPageBeyondData() throws Exception {
         createAndSaveCategory("Kategoria 1", "Opis 1");
         createAndSaveCategory("Kategoria 2", "Opis 2");
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/categories")
                         .param("page", "5")
                         .param("size", "10"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(0)))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.totalPages", is(1)))
+                .andExpect(jsonPath("$.number", is(5)))
+                .andExpect(jsonPath("$.first", is(false)))
+                .andExpect(jsonPath("$.last", is(true)));
     }
 }

@@ -15,4 +15,19 @@ public interface CategoryMapper {
     Category toEntity(CreateCategoryDTO createCategoryDTO);
 
     void updateEntity(@MappingTarget Category category, UpdateCategoryDTO updateCategoryDTO);
+
+    default Category toEntityWithTrimmedName(CreateCategoryDTO createCategoryDTO, String trimmedName) {
+        Category category = toEntity(createCategoryDTO);
+        if (trimmedName != null) {
+            category.setName(trimmedName);
+        }
+        return category;
+    }
+
+    default void updateEntityWithTrimmedName(Category category, UpdateCategoryDTO updateCategoryDTO, String trimmedName) {
+        updateEntity(category, updateCategoryDTO);
+        if (trimmedName != null) {
+            category.setName(trimmedName);
+        }
+    }
 }
