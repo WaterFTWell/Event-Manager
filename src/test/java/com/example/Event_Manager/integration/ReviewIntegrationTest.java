@@ -31,8 +31,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 import static com.example.Event_Manager.event.enums.Status.PUBLISHED;
 import static org.hamcrest.Matchers.is;
@@ -135,8 +133,8 @@ public class ReviewIntegrationTest {
                 .organizer(user)
                 .category(category)
                 .venue(venue)
-                .startTime(Date.from(now.plusDays(1).atZone(ZoneId.systemDefault()).toInstant()))
-                .endTime(Date.from(now.plusDays(1).plusHours(2).atZone(ZoneId.systemDefault()).toInstant()))
+                .startTime(now.plusDays(1))
+                .endTime(now.plusDays(1).plusHours(2))
                 .status(PUBLISHED)
                 .build();
         return eventRepository.save(event);
@@ -346,3 +344,4 @@ public class ReviewIntegrationTest {
                 .andExpect(jsonPath("$.last", is(true)));
     }
 }
+

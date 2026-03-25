@@ -8,6 +8,7 @@ import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
 import com.example.Event_Manager.category.mapper.CategoryMapper;
 import com.example.Event_Manager.category.repository.CategoryRepository;
 import com.example.Event_Manager.category.service.CategoryService;
+import com.example.Event_Manager.category.service.validation.ICategoryValidation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,8 @@ public class UpdateCategoryTest {
     @Mock
     private CategoryMapper categoryMapper;
 
+    @Mock
+    private ICategoryValidation categoryValidation;
 
     @InjectMocks
     private CategoryService categoryService;
@@ -51,16 +54,20 @@ public class UpdateCategoryTest {
     void updateCategory_shouldSucceed_whenDataIsUniqueAndValid() {
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO("Nowa Nazwa", "Nowy opis");
+        String trimmedName = "Nowa Nazwa";
+
         Category updatedCategory = Category.builder()
                 .id(categoryId)
-                .name(updateDTO.name())
+                .name(trimmedName)
                 .description(updateDTO.description())
                 .build();
-        CategoryDTO expectedDTO = new CategoryDTO(categoryId, updateDTO.name(), updateDTO.description());
+        CategoryDTO expectedDTO = new CategoryDTO(categoryId, trimmedName, updateDTO.description());
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByNameIgnoreCase(updateDTO.name())).thenReturn(Optional.empty());
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+        when(categoryValidation.validateAndTrimName(updateDTO.name())).thenReturn(trimmedName);
+
+        doNothing().when(categoryValidation).checkForDuplicateCategoryName(trimmedName, categoryId);
+        when(categoryRepository.save(existingCategory)).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
         CategoryDTO result = categoryService.updateCategory(categoryId, updateDTO);
@@ -69,7 +76,9 @@ public class UpdateCategoryTest {
         assertEquals(expectedDTO, result);
 
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).findCategoryByNameIgnoreCase(updateDTO.name());
+        verify(categoryValidation).validateAndTrimName(updateDTO.name());
+
+        verify(categoryValidation).checkForDuplicateCategoryName(trimmedName, categoryId);
         verify(categoryRepository).save(existingCategory);
         verify(categoryMapper).toDTO(updatedCategory);
     }
@@ -79,16 +88,18 @@ public class UpdateCategoryTest {
     void updateCategory_shouldSucceed_whenOnlyDescriptionChanges() {
         Long categoryId = 1L;
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(existingCategory.getName(), "Zaktualizowany opis");
+        String trimmedName = existingCategory.getName();
+
         Category updatedCategory = Category.builder()
                 .id(categoryId)
-                .name(existingCategory.getName())
+                .name(trimmedName)
                 .description(updateDTO.description())
                 .build();
-        CategoryDTO expectedDTO = new CategoryDTO(categoryId, existingCategory.getName(), updateDTO.description());
+        CategoryDTO expectedDTO = new CategoryDTO(categoryId, trimmedName, updateDTO.description());
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByNameIgnoreCase(updateDTO.name())).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+        when(categoryValidation.validateAndTrimName(updateDTO.name())).thenReturn(trimmedName);
+        when(categoryRepository.save(existingCategory)).thenReturn(updatedCategory);
         when(categoryMapper.toDTO(updatedCategory)).thenReturn(expectedDTO);
 
         CategoryDTO result = categoryService.updateCategory(categoryId, updateDTO);
@@ -97,7 +108,7 @@ public class UpdateCategoryTest {
         assertEquals(expectedDTO, result);
 
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).findCategoryByNameIgnoreCase(updateDTO.name());
+        verify(categoryValidation).validateAndTrimName(updateDTO.name());
         verify(categoryRepository).save(existingCategory);
         verify(categoryMapper).toDTO(updatedCategory);
     }
@@ -114,7 +125,6 @@ public class UpdateCategoryTest {
 
         assertEquals("Category with ID 99 not found.", exception.getMessage());
         verify(categoryRepository).findById(nonExistentId);
-        verify(categoryRepository, never()).findCategoryByNameIgnoreCase(any());
         verify(categoryRepository, never()).save(any());
     }
 
@@ -124,20 +134,25 @@ public class UpdateCategoryTest {
         Long categoryIdToUpdate = 1L;
         String newName = "Zajęta Nazwa";
         UpdateCategoryDTO updateDTO = new UpdateCategoryDTO(newName, "Opis");
+        String trimmedName = newName;
+
         Category otherCategory = Category.builder()
                 .id(2L)
-                .name(newName)
+                .name(trimmedName)
                 .build();
 
         when(categoryRepository.findById(categoryIdToUpdate)).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.findCategoryByNameIgnoreCase(newName)).thenReturn(Optional.of(otherCategory));
+        when(categoryValidation.validateAndTrimName(updateDTO.name())).thenReturn(trimmedName);
+        doThrow(new CategoryAlreadyExistsException("Category with this name already exists.")).when(categoryValidation)
+                .checkForDuplicateCategoryName(trimmedName, categoryIdToUpdate);
 
         CategoryAlreadyExistsException exception = assertThrows(CategoryAlreadyExistsException.class, () ->
                 categoryService.updateCategory(categoryIdToUpdate, updateDTO));
 
         assertEquals("Category with this name already exists.", exception.getMessage());
         verify(categoryRepository).findById(categoryIdToUpdate);
-        verify(categoryRepository).findCategoryByNameIgnoreCase(newName);
+        verify(categoryValidation).validateAndTrimName(updateDTO.name());
+        verify(categoryValidation).checkForDuplicateCategoryName(trimmedName, categoryIdToUpdate);
         verify(categoryRepository, never()).save(any());
     }
 }

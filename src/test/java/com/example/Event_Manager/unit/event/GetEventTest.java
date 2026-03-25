@@ -22,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -97,8 +96,8 @@ public class GetEventTest {
                 .id(1L)
                 .name("Rockowy koncert")
                 .description("Niesamowity koncert rockowy z najlepszymi zespołami")
-                .startTime(Timestamp.valueOf(futureDate))
-                .endTime(Timestamp.valueOf(futureDate.plusHours(3)))
+                .startTime(futureDate)
+                .endTime(futureDate.plusHours(3))
                 .status(Status.PUBLISHED)
                 .category(category)
                 .venue(venue)

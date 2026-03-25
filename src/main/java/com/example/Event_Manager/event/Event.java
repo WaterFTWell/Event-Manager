@@ -13,7 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
@@ -54,10 +54,10 @@ public class Event {
     private String description;
 
     @Column(nullable = false, name = "start_time")
-    private Date startTime;
+    private LocalDateTime startTime;
 
     @Column(nullable = false, name = "end_time")
-    private Date endTime;
+    private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "status")
@@ -65,11 +65,11 @@ public class Event {
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "event", cascade = CascadeType.ALL)
     @ToString.Exclude

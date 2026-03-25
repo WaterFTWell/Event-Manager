@@ -363,6 +363,6 @@ public class EventIntegrationTest {
                         .param("name", "NonExistentEvent")
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

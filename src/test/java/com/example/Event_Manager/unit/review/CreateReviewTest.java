@@ -4,7 +4,7 @@ import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.event.Event;
 import com.example.Event_Manager.event.exceptions.EventNotFoundException;
 import com.example.Event_Manager.event.repository.EventRepository;
-import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.event.service.validation.EventValidation;
 import com.example.Event_Manager.review.Review;
 import com.example.Event_Manager.review.dto.request.CreateReviewDTO;
 import com.example.Event_Manager.review.dto.response.ReviewDTO;

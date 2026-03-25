@@ -16,14 +16,16 @@ public interface IEventService {
     void deleteEvent(Long eventId);
     EventDTO getEventById(Long eventId);
 
+    //Wszyskie Page pownny moc byc puste, bez sensu wywalac wyjatek
     Page<EventDTO> getAllEvents(Pageable pageable);
     Page<EventDTO> getEventsByCategory(Long categoryId, Pageable pageable);
     Page<EventDTO> getEventsByVenue(Long venueId, Pageable pageable);
     Page<EventDTO> getEventsByDateRange(LocalDateTime start, LocalDateTime end, Pageable pageable);
     Page<EventDTO> searchEventsByName(String name, Pageable pageable);
-    Page<EventDTO> getEventsByOrganizer(Long organizerId, Pageable pageable);
-    Page<EventDTO> getEventsByOrganizer(String organizerName, Pageable pageable);
+    Page<EventDTO> getEventsByOrganizerId(Long organizerId, Pageable pageable);
+    Page<EventDTO> getEventsByOrganizerName(String organizerName, Pageable pageable);
 
+    // Event summary nie moze byc pusty
     EventSummaryDTO getEventSummary(Long eventId);
 
 }

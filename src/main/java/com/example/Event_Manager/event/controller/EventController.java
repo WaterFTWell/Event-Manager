@@ -107,7 +107,7 @@ public class EventController implements EventApi {
             @PathVariable @Positive(message = "Id should be positive") Long organizerId,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerId, pageable));
+        return ResponseEntity.ok(eventService.getEventsByOrganizerId(organizerId, pageable));
     }
 
     @GetMapping("/{eventId}/summary")
@@ -122,6 +122,6 @@ public class EventController implements EventApi {
             @PathVariable @NotBlank(message = "Organizer name should not be empty") String organizerName,
             @PageableDefault(sort = "id") Pageable pageable
     ) {
-        return ResponseEntity.ok(eventService.getEventsByOrganizer(organizerName, pageable));
+        return ResponseEntity.ok(eventService.getEventsByOrganizerName(organizerName, pageable));
     }
 }

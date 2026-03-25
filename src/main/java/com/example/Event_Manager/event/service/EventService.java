@@ -1,8 +1,6 @@
 package com.example.Event_Manager.event.service;
 
 import com.example.Event_Manager.category.Category;
-import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
-import com.example.Event_Manager.category.repository.CategoryRepository;
 import com.example.Event_Manager.event.Event;
 import com.example.Event_Manager.event.dto.request.CreateEventDTO;
 import com.example.Event_Manager.event.dto.request.UpdateEventDTO;
@@ -12,10 +10,8 @@ import com.example.Event_Manager.event.enums.Status;
 import com.example.Event_Manager.event.exceptions.EventNotFoundException;
 import com.example.Event_Manager.event.mapper.EventMapper;
 import com.example.Event_Manager.event.repository.EventRepository;
-import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.event.service.validation.EventValidation;
 import com.example.Event_Manager.venue.Venue;
-import com.example.Event_Manager.venue.exceptions.VenueNotFoundException;
-import com.example.Event_Manager.venue.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,16 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
 public class EventService implements IEventService {
 
     private final EventMapper eventMapper;
-    private final CategoryRepository categoryRepository;
-    private final VenueRepository venueRepository;
     private final EventRepository eventRepository;
 
     private final EventValidation eventValidation;
@@ -40,10 +32,12 @@ public class EventService implements IEventService {
     @Override
     @Transactional
     public EventDTO createEvent(CreateEventDTO eventDTO) {
-        Category category = categoryRepository.findById(eventDTO.categoryId())
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-        Venue venue = venueRepository.findById(eventDTO.venueId())
-                .orElseThrow(() -> new VenueNotFoundException("Venue not found"));
+
+        Long categoryId = eventDTO.categoryId();
+        Long venueId = eventDTO.venueId();
+
+        Venue venue = eventValidation.findVenueById(venueId);
+        Category category = eventValidation.findCategoryById(categoryId);
 
         Event event = eventMapper.toEntity(eventDTO, category, venue);
         event.setStatus(Status.PUBLISHED);
@@ -56,14 +50,11 @@ public class EventService implements IEventService {
     @Override
     @Transactional
     public EventDTO updateEvent(Long eventId, UpdateEventDTO eventDTO) {
-        Venue venue = venueRepository.findById(eventDTO.venueId())
-                .orElseThrow(() -> new VenueNotFoundException("Venue not found"));
-
-        Category category = categoryRepository.findById(eventDTO.categoryId())
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-
         Event eventToUpdate = eventRepository.findEventById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event with this id is not in database."));
+                .orElseThrow(() -> new EventNotFoundException("Event with ID " + eventId + " not found."));
+
+        Venue venue = eventValidation.findVenueById(eventDTO.venueId());
+        Category category = eventValidation.findCategoryById(eventDTO.categoryId());
 
         eventMapper.updateEntity(eventToUpdate, eventDTO, category, venue);
         Event updatedEvent = eventRepository.save(eventToUpdate);
@@ -74,88 +65,89 @@ public class EventService implements IEventService {
     @Override
     @Transactional
     public void deleteEvent(Long eventId) {
-        if (!eventRepository.existsById(eventId)) {
-            throw new EventNotFoundException("Event with this id is not in database.");
+        int deletedCount = eventRepository.deleteEventById(eventId);
+        if (deletedCount == 0) {
+            throw new EventNotFoundException("Event with ID " + eventId + " not found.");
         }
-
-        eventRepository.deleteById(eventId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventDTO getEventById(Long eventId) {
         Event event = eventRepository.findEventById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found in database."));
+                .orElseThrow(() -> new EventNotFoundException("Event with ID " + eventId + " not found."));
 
         return eventMapper.toDTO(event);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EventDTO> getAllEvents(Pageable pageable) {
-
         Page<Event> eventsPage = eventRepository.findAll(pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
-
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EventDTO> getEventsByCategory(Long categoryId, Pageable pageable) {
+        eventValidation.findCategoryById(categoryId);
+
         Page<Event> eventsPage = eventRepository.findByCategory_Id(categoryId, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
-
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EventDTO> getEventsByVenue(Long venueId, Pageable pageable) {
+        eventValidation.findVenueById(venueId);
+
         Page<Event> eventsPage = eventRepository.findByVenue_Id(venueId, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
-
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EventDTO> getEventsByDateRange(LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        Date startDate = Date.from(start.atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = Date.from(end.atZone(ZoneId.systemDefault()).toInstant());
+        eventValidation.validateEventDates(start, end);
 
-        Page<Event> eventsPage = eventRepository.findByStartTimeBetween(startDate, endDate, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
-
+        Page<Event> eventsPage = eventRepository.findByStartTimeBetween(start, end, pageable);
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EventDTO> searchEventsByName(String name, Pageable pageable) {
-        eventValidation.checkEventName(name);
-        Page<Event> eventsPage = eventRepository.findByNameContainingIgnoreCase(name, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
+
+        String normalizedName = eventValidation.checkEventName(name);
+        Page<Event> eventsPage = eventRepository.findByNameContainingIgnoreCase(normalizedName, pageable);
 
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
-    public Page<EventDTO> getEventsByOrganizer(Long organizerId, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<EventDTO> getEventsByOrganizerId(Long organizerId, Pageable pageable) {
+        eventValidation.validateOrganizerExists(organizerId);
+
         Page<Event> eventsPage = eventRepository.findByOrganizer_Id(organizerId, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
 
         return eventsPage.map(eventMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventSummaryDTO getEventSummary(Long eventId) {
         Event event = eventRepository.findEventById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found in database."));
+                .orElseThrow(() -> new EventNotFoundException("Event with ID " + eventId + " not found."));
 
         return eventMapper.toSummaryDTO(event);
     }
 
     @Override
-    public Page<EventDTO> getEventsByOrganizer(String organizerName, Pageable pageable) {
-        eventValidation.checkOrganizerName(organizerName);
-        String normalizedName = organizerName.trim();
+    @Transactional(readOnly = true)
+    public Page<EventDTO> getEventsByOrganizerName(String organizerName, Pageable pageable) {
+        String normalizedName = eventValidation.checkOrganizerName(organizerName);
         Page<Event> eventsPage = eventRepository.findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable);
-        eventValidation.checkIfEventPageEmpty(eventsPage);
 
         return eventsPage.map(eventMapper::toDTO);
     }

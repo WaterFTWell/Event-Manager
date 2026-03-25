@@ -28,7 +28,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import static com.example.Event_Manager.event.enums.Status.PUBLISHED;
 import static org.hamcrest.Matchers.hasSize;
@@ -81,11 +81,13 @@ public class InterestedIntegrationTest {
         Category cat = categoryRepository.save(Category.builder().name("Test Cat").description("desc").build());
         Venue ven = venueRepository.save(Venue.builder().name("Venue").address("Addr").description("desc").build());
 
+        LocalDateTime now = LocalDateTime.now();
+
         testEvent = eventRepository.save(Event.builder()
                 .name("Super Event")
                 .description("Opis")
-                .startTime(new Date())
-                .endTime(new Date())
+                .startTime(now.plusDays(1))
+                .endTime(now.plusDays(1).plusHours(2))
                 .status(PUBLISHED)
                 .category(cat)
                 .venue(ven)
@@ -95,8 +97,8 @@ public class InterestedIntegrationTest {
         testEvent2 = eventRepository.save(Event.builder()
                 .name("Super Event2")
                 .description("Opis")
-                .startTime(new Date())
-                .endTime(new Date())
+                .startTime(now.plusDays(2))
+                .endTime(now.plusDays(2).plusHours(2))
                 .status(PUBLISHED)
                 .category(cat)
                 .venue(ven)

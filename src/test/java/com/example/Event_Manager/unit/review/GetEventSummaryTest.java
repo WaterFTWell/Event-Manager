@@ -2,7 +2,7 @@ package com.example.Event_Manager.unit.review;
 
 import com.example.Event_Manager.event.Event;
 import com.example.Event_Manager.event.repository.EventRepository;
-import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.event.service.validation.EventValidation;
 import com.example.Event_Manager.review.Review;
 import com.example.Event_Manager.review.dto.response.ReviewDTO;
 import com.example.Event_Manager.review.dto.response.ReviewSummaryDTO;

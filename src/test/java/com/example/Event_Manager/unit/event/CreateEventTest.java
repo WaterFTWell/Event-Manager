@@ -2,7 +2,8 @@ package com.example.Event_Manager.unit.event;
 
 import com.example.Event_Manager.category.Category;
 import com.example.Event_Manager.category.exceptions.CategoryNotFoundException;
-import com.example.Event_Manager.category.repository.CategoryRepository;
+import com.example.Event_Manager.city.City;
+import com.example.Event_Manager.country.Country;
 import com.example.Event_Manager.event.Event;
 import com.example.Event_Manager.event.dto.request.CreateEventDTO;
 import com.example.Event_Manager.event.dto.response.EventDTO;
@@ -10,13 +11,10 @@ import com.example.Event_Manager.event.enums.Status;
 import com.example.Event_Manager.event.mapper.EventMapper;
 import com.example.Event_Manager.event.repository.EventRepository;
 import com.example.Event_Manager.event.service.EventService;
-import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.event.service.validation.EventValidation;
 import com.example.Event_Manager.user.User;
 import com.example.Event_Manager.venue.Venue;
 import com.example.Event_Manager.venue.exceptions.VenueNotFoundException;
-import com.example.Event_Manager.venue.repository.VenueRepository;
-import com.example.Event_Manager.city.City;
-import com.example.Event_Manager.country.Country;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,16 +37,10 @@ public class CreateEventTest {
     private EventMapper eventMapper;
 
     @Mock
-    private EventValidation eventValidation;
-
-    @Mock
-    private CategoryRepository categoryRepository;
-
-    @Mock
-    private VenueRepository venueRepository;
-
-    @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private EventValidation eventValidation;
 
     @InjectMocks
     private EventService eventService;
@@ -129,8 +120,8 @@ public class CreateEventTest {
     @Test
     @DisplayName("Should create event successfully")
     void createEvent_Success() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(event);
         when(eventRepository.save(event)).thenReturn(event);
@@ -144,8 +135,8 @@ public class CreateEventTest {
         assertEquals(Status.PUBLISHED, result.eventStatus());
         assertEquals(organizer.getId(), result.organizerId());
 
-        verify(categoryRepository).findById(1L);
-        verify(venueRepository).findById(1L);
+        verify(eventValidation).findVenueById(1L);
+        verify(eventValidation).findCategoryById(1L);
         verify(eventMapper).toEntity(validCreateEventDTO, category, venue);
         verify(eventRepository).save(event);
         verify(eventMapper).toDTO(event);
@@ -154,76 +145,32 @@ public class CreateEventTest {
     @Test
     @DisplayName("Should throw CategoryNotFoundException when category is not found")
     void createEvent_CategoryNotFound_ThrowsCategoryNotFoundException() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
+        when(eventValidation.findCategoryById(1L))
+                .thenThrow(new CategoryNotFoundException("Category with ID 1 not found"));
 
-        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
-            eventService.createEvent(validCreateEventDTO);
-        });
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () ->
+                eventService.createEvent(validCreateEventDTO));
 
-        assertEquals("Category not found", exception.getMessage());
-        verify(categoryRepository).findById(1L);
-        verify(venueRepository, never()).findById(any());
+        assertEquals("Category with ID 1 not found", exception.getMessage());
+        verify(eventValidation).findVenueById(1L);
+        verify(eventValidation).findCategoryById(1L);
         verify(eventRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should throw EventNotFoundException when venue is not found")
-    void createEvent_VenueNotFound_ThrowsEventNotFoundException() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.empty());
+    @DisplayName("Should throw VenueNotFoundException when venue is not found")
+    void createEvent_VenueNotFound_ThrowsVenueNotFoundException() {
+        when(eventValidation.findVenueById(1L))
+                .thenThrow(new VenueNotFoundException("Venue with ID 1 not found"));
 
-        VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
-            eventService.createEvent(validCreateEventDTO);
-        });
+        VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () ->
+                eventService.createEvent(validCreateEventDTO));
 
-        assertEquals("Venue not found", exception.getMessage());
-        verify(categoryRepository).findById(1L);
-        verify(venueRepository).findById(1L);
-        verify(eventRepository, never()).save(any());
-    }
+        assertEquals("Venue with ID 1 not found", exception.getMessage());
+        verify(eventValidation).findVenueById(1L);
 
-    @Test
-    void createEvent_InvalidCategoryId_ThrowsException() {
-        CreateEventDTO invalidDTO = new CreateEventDTO(
-                "Rock Concert",
-                "Amazing rock concert",
-                LocalDateTime.now().plusDays(1),
-                LocalDateTime.now().plusDays(2),
-                1L,
-                -1L
-        );
-        when(categoryRepository.findById(-1L)).thenReturn(Optional.empty());
-
-        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
-            eventService.createEvent(invalidDTO);
-        });
-
-        assertEquals("Category not found", exception.getMessage());
-        verify(categoryRepository).findById(-1L);
-        verify(eventRepository, never()).save(any());
-    }
-
-    @Test
-    void createEvent_InvalidVenueId_ThrowsException() {
-        CreateEventDTO invalidDTO = new CreateEventDTO(
-                "Rock Concert",
-                "Amazing rock concert",
-                LocalDateTime.now().plusDays(1),
-                LocalDateTime.now().plusDays(2),
-                -1L, // Invalid venue ID
-                1L
-        );
-
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(-1L)).thenReturn(Optional.empty());
-
-        VenueNotFoundException exception = assertThrows(VenueNotFoundException.class, () -> {
-            eventService.createEvent(invalidDTO);
-        });
-
-        assertEquals("Venue not found", exception.getMessage());
-        verify(categoryRepository).findById(1L);
-        verify(venueRepository).findById(-1L);
+        verify(eventValidation, never()).findCategoryById(anyLong());
         verify(eventRepository, never()).save(any());
     }
 
@@ -258,8 +205,8 @@ public class CreateEventTest {
                 null,
                 null
         );
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(eventWithoutOrganizer);
         when(eventRepository.save(eventWithoutOrganizer)).thenReturn(eventWithoutOrganizer);
@@ -274,8 +221,8 @@ public class CreateEventTest {
 
     @Test
     void createEvent_ValidatesAllDependencies() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(event);
         when(eventRepository.save(event)).thenReturn(event);
@@ -283,23 +230,22 @@ public class CreateEventTest {
 
         eventService.createEvent(validCreateEventDTO);
 
-        verify(categoryRepository).findById(1L);
-        verify(venueRepository).findById(1L);
+        verify(eventValidation).findVenueById(1L);
+        verify(eventValidation).findCategoryById(1L);
         verify(eventRepository).save(event);
     }
 
     @Test
     void createEvent_RepositorySaveFailure_ThrowsException() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(event);
         when(eventRepository.save(event))
                 .thenThrow(new RuntimeException("Database connection error"));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            eventService.createEvent(validCreateEventDTO);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                eventService.createEvent(validCreateEventDTO));
 
         assertEquals("Database connection error", exception.getMessage());
         verify(eventRepository).save(event);
@@ -308,8 +254,8 @@ public class CreateEventTest {
 
     @Test
     void createEvent_MapperReturnsNull_HandlesGracefully() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
 
         Event validEvent = Event.builder()
                 .id(1L)
@@ -352,8 +298,8 @@ public class CreateEventTest {
                 null,
                 organizer.getId()
         );
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(completeEvent);
         when(eventRepository.save(completeEvent)).thenReturn(completeEvent);
@@ -371,8 +317,8 @@ public class CreateEventTest {
 
     @Test
     void createEvent_VerifyTransactionBoundary() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(venueRepository.findById(1L)).thenReturn(Optional.of(venue));
+        when(eventValidation.findVenueById(1L)).thenReturn(venue);
+        when(eventValidation.findCategoryById(1L)).thenReturn(category);
         when(eventMapper.toEntity(any(CreateEventDTO.class), any(Category.class), any(Venue.class)))
                 .thenReturn(event);
         when(eventRepository.save(event)).thenReturn(event);
@@ -380,10 +326,10 @@ public class CreateEventTest {
 
         eventService.createEvent(validCreateEventDTO);
 
-        var inOrder = inOrder(categoryRepository, venueRepository, eventMapper, eventRepository);
+        var inOrder = inOrder(eventValidation, eventMapper, eventRepository);
 
-        inOrder.verify(categoryRepository).findById(1L);
-        inOrder.verify(venueRepository).findById(1L);
+        inOrder.verify(eventValidation).findVenueById(1L);
+        inOrder.verify(eventValidation).findCategoryById(1L);
         inOrder.verify(eventMapper).toEntity(validCreateEventDTO, category, venue);
         inOrder.verify(eventRepository).save(event);
         inOrder.verify(eventMapper).toDTO(event);

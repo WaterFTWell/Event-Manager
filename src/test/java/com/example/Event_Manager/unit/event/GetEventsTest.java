@@ -1,24 +1,21 @@
 package com.example.Event_Manager.unit.event;
 
-import com.example.Event_Manager.user.repository.UserRepository;
 import com.example.Event_Manager.category.Category;
 import com.example.Event_Manager.category.dto.response.CategoryDTO;
-import com.example.Event_Manager.category.repository.CategoryRepository;
 import com.example.Event_Manager.city.City;
 import com.example.Event_Manager.country.Country;
 import com.example.Event_Manager.event.Event;
 import com.example.Event_Manager.event.dto.response.EventDTO;
 import com.example.Event_Manager.event.enums.Status;
-import com.example.Event_Manager.event.exceptions.EventsNotFoundException;
 import com.example.Event_Manager.event.mapper.EventMapper;
 import com.example.Event_Manager.event.repository.EventRepository;
 import com.example.Event_Manager.event.service.EventService;
-import com.example.Event_Manager.event.validation.EventValidation;
+import com.example.Event_Manager.event.service.validation.EventValidation;
 import com.example.Event_Manager.user.User;
 import com.example.Event_Manager.user.enums.Role;
+import com.example.Event_Manager.user.exceptions.UserNotFoundException;
 import com.example.Event_Manager.venue.Venue;
 import com.example.Event_Manager.venue.dto.response.VenueDTO;
-import com.example.Event_Manager.venue.repository.VenueRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,9 +28,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,13 +47,6 @@ public class GetEventsTest {
 
     @Mock
     private EventValidation eventValidation;
-
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private CategoryRepository categoryRepository;
-    @Mock
-    private VenueRepository venueRepository;
 
     @InjectMocks
     private EventService eventService;
@@ -146,7 +134,7 @@ public class GetEventsTest {
                 .id(1L)
                 .name("Super koncert rockowy")
                 .description("Niesamowity koncert rockowy")
-                .startTime(Timestamp.valueOf(LocalDateTime.now().plusDays(7)))
+                .startTime(LocalDateTime.now().plusDays(7))
                 .status(Status.PUBLISHED)
                 .category(category1)
                 .venue(venue1)
@@ -157,7 +145,7 @@ public class GetEventsTest {
                 .id(2L)
                 .name("Mecz piłki nożnej")
                 .description("Ekscytujący mecz")
-                .startTime(Timestamp.valueOf(LocalDateTime.now().plusDays(3)))
+                .startTime(LocalDateTime.now().plusDays(3))
                 .status(Status.PUBLISHED)
                 .category(category2)
                 .venue(venue2)
@@ -168,7 +156,7 @@ public class GetEventsTest {
                 .id(3L)
                 .name("Koncert jazzowy")
                 .description("Wieczór z jazzem")
-                .startTime(Timestamp.valueOf(LocalDateTime.now().plusDays(14)))
+                .startTime(LocalDateTime.now().plusDays(14))
                 .status(Status.PUBLISHED)
                 .category(category1)
                 .venue(venue1)
@@ -185,7 +173,7 @@ public class GetEventsTest {
                 event1.getName(),
                 event1.getDescription(),
                 event1.getStatus(),
-                ((Timestamp) event1.getStartTime()).toLocalDateTime(),
+                event1.getStartTime(),
                 categoryDTO1,
                 venueDTO1,
                 event1.getOrganizer().getId()
@@ -195,7 +183,7 @@ public class GetEventsTest {
                 event2.getName(),
                 event2.getDescription(),
                 event2.getStatus(),
-                ((Timestamp) event2.getStartTime()).toLocalDateTime(),
+                event2.getStartTime(),
                 categoryDTO2,
                 venueDTO2,
                 event2.getOrganizer().getId()
@@ -205,7 +193,7 @@ public class GetEventsTest {
                 event3.getName(),
                 event3.getDescription(),
                 event3.getStatus(),
-                ((Timestamp) event3.getStartTime()).toLocalDateTime(),
+                event3.getStartTime(),
                 categoryDTO1,
                 venueDTO1,
                 event3.getOrganizer().getId()
@@ -219,7 +207,6 @@ public class GetEventsTest {
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event2)).thenReturn(eventDTO2);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
         Page<EventDTO> result = eventService.getAllEvents(pageable);
 
@@ -227,84 +214,79 @@ public class GetEventsTest {
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO2, eventDTO3)));
         verify(eventRepository).findAll(pageable);
         verify(eventMapper, times(3)).toDTO(any(Event.class));
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
+        verifyNoInteractions(eventValidation);
     }
 
     @Test
-    void getAllEvents_EmptyRepository_ThrowsException() {
-        Page<Event> emptyPage = Page.empty();
+    void getAllEvents_EmptyRepository_ReturnsEmptyPage() {
+        Page<Event> emptyPage = Page.empty(pageable);
         when(eventRepository.findAll(pageable)).thenReturn(emptyPage);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
 
+        Page<EventDTO> result = eventService.getAllEvents(pageable);
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getAllEvents(pageable));
-
+        assertTrue(result.isEmpty());
         verify(eventRepository).findAll(pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
-        verifyNoInteractions(eventMapper);
+        verifyNoInteractions(eventValidation, eventMapper);
     }
 
     @Test
     void getEventsByCategory_Success_ReturnsFilteredEvents() {
         Long categoryId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
+        when(eventValidation.findCategoryById(categoryId)).thenReturn(category1);
         when(eventRepository.findByCategory_Id(categoryId, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
         Page<EventDTO> result = eventService.getEventsByCategory(categoryId, pageable);
 
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
+        verify(eventValidation).findCategoryById(categoryId);
         verify(eventRepository).findByCategory_Id(categoryId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
     }
 
     @Test
-    void getEventsByCategory_NoEventsInCategory_ThrowsException() {
+    void getEventsByCategory_CategoryDoesNotExist_ThrowsException() {
         Long categoryId = 99L;
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByCategory_Id(categoryId, pageable)).thenReturn(emptyPage);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
+        when(eventValidation.findCategoryById(categoryId))
+                .thenThrow(new com.example.Event_Manager.category.exceptions.CategoryNotFoundException("Category with ID " + categoryId + " not found."));
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByCategory(categoryId, pageable));
+        assertThrows(com.example.Event_Manager.category.exceptions.CategoryNotFoundException.class,
+                () -> eventService.getEventsByCategory(categoryId, pageable));
 
-        verify(eventRepository).findByCategory_Id(categoryId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventValidation).findCategoryById(categoryId);
+        verifyNoInteractions(eventRepository, eventMapper);
     }
 
     @Test
     void getEventsByVenue_Success_ReturnsFilteredEvents() {
         Long venueId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
+        when(eventValidation.findVenueById(venueId)).thenReturn(venue1);
         when(eventRepository.findByVenue_Id(venueId, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
         Page<EventDTO> result = eventService.getEventsByVenue(venueId, pageable);
 
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
+        verify(eventValidation).findVenueById(venueId);
         verify(eventRepository).findByVenue_Id(venueId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
     }
 
     @Test
-    void getEventsByVenue_NoEventsInVenue_ThrowsException() {
+    void getEventsByVenue_VenueDoesNotExist_ThrowsException() {
         Long venueId = 99L;
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByVenue_Id(venueId, pageable)).thenReturn(emptyPage);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
+        when(eventValidation.findVenueById(venueId))
+                .thenThrow(new com.example.Event_Manager.venue.exceptions.VenueNotFoundException("Venue with ID " + venueId + " not found."));
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByVenue(venueId, pageable));
+        assertThrows(com.example.Event_Manager.venue.exceptions.VenueNotFoundException.class,
+                () -> eventService.getEventsByVenue(venueId, pageable));
 
-        verify(eventRepository).findByVenue_Id(venueId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventValidation).findVenueById(venueId);
+        verifyNoInteractions(eventRepository, eventMapper);
     }
 
     @Test
@@ -312,96 +294,77 @@ public class GetEventsTest {
         LocalDateTime start = LocalDateTime.now().plusDays(2);
         LocalDateTime end = LocalDateTime.now().plusDays(10);
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event2), pageable, 2);
-        when(eventRepository.findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable))).thenReturn(eventPage);
+        doNothing().when(eventValidation).validateEventDates(start, end);
+        when(eventRepository.findByStartTimeBetween(start, end, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event2)).thenReturn(eventDTO2);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
         Page<EventDTO> result = eventService.getEventsByDateRange(start, end, pageable);
 
         assertEquals(2, result.getContent().size());
-        verify(eventRepository).findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable));
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
+        verify(eventValidation).validateEventDates(start, end);
+        verify(eventRepository).findByStartTimeBetween(start, end, pageable);
     }
 
     @Test
-    void getEventsByDateRange_NoEventsInRange_ThrowsException() {
-        LocalDateTime start = LocalDateTime.now().plusDays(100);
-        LocalDateTime end = LocalDateTime.now().plusDays(200);
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable))).thenReturn(emptyPage);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
+    void getEventsByDateRange_InvalidRange_ThrowsException() {
+        LocalDateTime start = LocalDateTime.now().plusDays(10);
+        LocalDateTime end = LocalDateTime.now().plusDays(2);
+        doThrow(new IllegalArgumentException("Invalid date range"))
+                .when(eventValidation).validateEventDates(start, end);
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByDateRange(start, end, pageable));
+        assertThrows(IllegalArgumentException.class,
+                () -> eventService.getEventsByDateRange(start, end, pageable));
 
-        verify(eventRepository).findByStartTimeBetween(any(Date.class), any(Date.class), eq(pageable));
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventValidation).validateEventDates(start, end);
+        verifyNoInteractions(eventRepository, eventMapper);
     }
 
     @Test
     void searchEventsByName_Success_ReturnsMatchingEvents() {
         String searchName = "koncert";
+        String normalized = searchName; // w prostym przypadku brak modyfikacji
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
-        when(eventRepository.findByNameContainingIgnoreCase(searchName, pageable)).thenReturn(eventPage);
+        when(eventValidation.checkEventName(searchName)).thenReturn(normalized);
+        when(eventRepository.findByNameContainingIgnoreCase(normalized, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkEventName(searchName);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
         Page<EventDTO> result = eventService.searchEventsByName(searchName, pageable);
 
         assertEquals(2, result.getContent().size());
         verify(eventValidation).checkEventName(searchName);
-        verify(eventRepository).findByNameContainingIgnoreCase(searchName, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
-    }
-
-    @Test
-    void searchEventsByName_NoMatches_ThrowsException() {
-        String searchName = "xyz123";
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByNameContainingIgnoreCase(searchName, pageable)).thenReturn(emptyPage);
-        doNothing().when(eventValidation).checkEventName(searchName);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
-
-        assertThrows(EventsNotFoundException.class, () -> eventService.searchEventsByName(searchName, pageable));
-
-        verify(eventValidation).checkEventName(searchName);
-        verify(eventRepository).findByNameContainingIgnoreCase(searchName, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventRepository).findByNameContainingIgnoreCase(normalized, pageable);
     }
 
     @Test
     void getEventsByOrganizerId_Success_ReturnsFilteredEvents() {
         Long organizerId = 1L;
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
+        doNothing().when(eventValidation).validateOrganizerExists(organizerId);
         when(eventRepository.findByOrganizer_Id(organizerId, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        Page<EventDTO> result = eventService.getEventsByOrganizer(organizerId, pageable);
+        Page<EventDTO> result = eventService.getEventsByOrganizerId(organizerId, pageable);
 
         assertEquals(2, result.getContent().size());
         assertTrue(result.getContent().containsAll(List.of(eventDTO1, eventDTO3)));
+        verify(eventValidation).validateOrganizerExists(organizerId);
         verify(eventRepository).findByOrganizer_Id(organizerId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
     }
 
     @Test
-    void getEventsByOrganizerId_NoEventsForOrganizer_ThrowsException() {
+    void getEventsByOrganizerId_OrganizerDoesNotExist_ThrowsException() {
         Long organizerId = 99L;
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByOrganizer_Id(organizerId, pageable)).thenReturn(emptyPage);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
+        doThrow(new UserNotFoundException("User with ID " + organizerId + " not found."))
+                .when(eventValidation).validateOrganizerExists(organizerId);
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByOrganizer(organizerId, pageable));
+        assertThrows(UserNotFoundException.class,
+                () -> eventService.getEventsByOrganizerId(organizerId, pageable));
 
-        verify(eventRepository).findByOrganizer_Id(organizerId, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventValidation).validateOrganizerExists(organizerId);
+        verifyNoInteractions(eventRepository, eventMapper);
     }
 
     @Test
@@ -409,34 +372,28 @@ public class GetEventsTest {
         String organizerName = "Jan Kowalski";
         String normalizedName = organizerName.trim();
         Page<Event> eventPage = new PageImpl<>(List.of(event1, event3), pageable, 2);
+        when(eventValidation.checkOrganizerName(organizerName)).thenReturn(normalizedName);
         when(eventRepository.findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable)).thenReturn(eventPage);
         when(eventMapper.toDTO(event1)).thenReturn(eventDTO1);
         when(eventMapper.toDTO(event3)).thenReturn(eventDTO3);
-        doNothing().when(eventValidation).checkOrganizerName(organizerName);
-        doNothing().when(eventValidation).checkIfEventPageEmpty(eventPage);
 
-        Page<EventDTO> result = eventService.getEventsByOrganizer(organizerName, pageable);
+        Page<EventDTO> result = eventService.getEventsByOrganizerName(organizerName, pageable);
 
         assertEquals(2, result.getContent().size());
         verify(eventValidation).checkOrganizerName(organizerName);
         verify(eventRepository).findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(eventPage);
     }
 
     @Test
-    void getEventsByOrganizerName_NoEventsForOrganizer_ThrowsException() {
-        String organizerName = "Nieistniejący Organizator";
-        String normalizedName = organizerName.trim();
-        Page<Event> emptyPage = Page.empty();
-        when(eventRepository.findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable)).thenReturn(emptyPage);
-        doNothing().when(eventValidation).checkOrganizerName(organizerName);
-        doThrow(new EventsNotFoundException("Brak wydarzeń."))
-                .when(eventValidation).checkIfEventPageEmpty(emptyPage);
+    void getEventsByOrganizerName_InvalidOrganizerName_ThrowsException() {
+        String invalidOrganizerName = "   ";
+        doThrow(new IllegalArgumentException("Organizer name cannot be blank."))
+                .when(eventValidation).checkOrganizerName(invalidOrganizerName);
 
-        assertThrows(EventsNotFoundException.class, () -> eventService.getEventsByOrganizer(organizerName, pageable));
+        assertThrows(IllegalArgumentException.class,
+                () -> eventService.getEventsByOrganizerName(invalidOrganizerName, pageable));
 
-        verify(eventValidation).checkOrganizerName(organizerName);
-        verify(eventRepository).findByOrganizerFullNameContainingIgnoreCase(normalizedName, pageable);
-        verify(eventValidation).checkIfEventPageEmpty(emptyPage);
+        verify(eventValidation).checkOrganizerName(invalidOrganizerName);
+        verifyNoInteractions(eventRepository, eventMapper);
     }
 }
